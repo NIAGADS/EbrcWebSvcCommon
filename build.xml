@@ -4,9 +4,9 @@
   <!-- oooooooooooooooooooooooooo  Dependencies  oooooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
 
-  <target name="WSF-Installation">
-    <ant antfile="../WSF/build.xml" target="WSF-Installation">
-      <property name="project" value="WSF"/>
+  <target name="WDK-Installation">
+    <ant antfile="../WDK/build.xml" target="WDK-Installation">
+      <property name="project" value="WDK"/>
       <property name="version" value="WDK_version_1-18"/>
     </ant>
   </target>  
@@ -18,10 +18,10 @@
     </ant>
   </target>  
     
-  <target name="WSF-Checkout" unless="WSF.present"> 
+  <target name="WDK-Checkout" unless="WDK.present"> 
     <ant target="defaultProjectCheckout" inheritAll="false">
-      <property name="svnurl" value="https://www.cbil.upenn.edu/svn/gus/WSF"/>
-      <property name="project" value="WSF"/>
+      <property name="svnurl" value="https://www.cbil.upenn.edu/svn/gus/WDK"/>
+      <property name="project" value="WDK"/>
       <property name="version" value="WDK_version_1-28"/>
     </ant>
   </target>
@@ -30,8 +30,8 @@
   <!-- oooooooooooooooooooooooooo    Checkout    oooooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
   <target name="EuPathWebSvcCommon-ChildCheckout">
-    <available file="../WSF" type="dir"  property="WSF.present" />
-    <antcall target="WSF-Checkout"/>
+    <available file="../WDK" type="dir"  property="WDK.present" />
+    <antcall target="WDK-Checkout"/>
   </target>
   
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
@@ -39,7 +39,7 @@
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
   <target name="EuPathWebSvcCommon-ChildUpdate">
     <ant target="defaultProjectUpdate">
-      <property name="project" value="WSF"/>
+      <property name="project" value="WDK"/>
     </ant>
   </target>
 
@@ -47,14 +47,14 @@
   <!-- oooooooooooooooooooooooooo  Installation  oooooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
 
-  <target name="EuPathWebSvcCommon-Installation" depends="WSF-Installation,
+  <target name="EuPathWebSvcCommon-Installation" depends="WDK-Installation,
                                                           EuPathWebSvcCommon/WSFPlugin-Installation">
 
     <ant target="defaultProjectInstall"/>
 
-    <!-- copy the WSF-Clisnt.jar, which will be used by IDE -->
+    <!-- copy the WDK-Clisnt.jar, which will be used by IDE -->
     <copy  file="${targetDir}/lib/java/WSF-Client.jar"
-           toDir="../OrthoMCLWebService/WSFPlugin/lib/java" />
+           toDir="../EuPathWebSvcCommon/WSFPlugin/lib/java" />
 
   </target>
 
@@ -64,7 +64,7 @@
   <target name="EuPathWebSvcCommon/WSFPlugin-Installation">
 
     <ant target="defaultComponentInstall">
-      <property name="project" value="OrthoMCLWebService"/>
+      <property name="project" value="EuPathWebSvcCommon"/>
       <property name="component" value="WSFPlugin"/>
     </ant>
     
