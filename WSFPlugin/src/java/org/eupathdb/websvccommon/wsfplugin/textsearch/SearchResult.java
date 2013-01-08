@@ -45,10 +45,10 @@ public class SearchResult implements Comparable <SearchResult> {
     public void combine(SearchResult other) {
 	if (other.getMaxScore() > maxScore) {
 	    maxScore = other.getMaxScore();
-	    fieldsMatched = other.getFieldsMatched() + fieldsMatched;
+	    fieldsMatched = other.getFieldsMatched() + "," + fieldsMatched;
 	} else {
 	    //	    fieldsMatched.append(other.getFieldsMatched()), if fieldsMatched were a StringBuffer
-	    fieldsMatched = fieldsMatched + other.getFieldsMatched();
+	    fieldsMatched = fieldsMatched + "," + other.getFieldsMatched();
 	}
 
     }
