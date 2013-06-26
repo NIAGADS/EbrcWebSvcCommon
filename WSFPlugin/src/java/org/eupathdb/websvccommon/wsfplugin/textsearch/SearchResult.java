@@ -13,13 +13,13 @@ public class SearchResult implements Comparable <SearchResult> {
     private String sourceId;
     private String projectId;
     private float maxScore; 
-    private String fieldsMatched; 
+    private StringBuilder fieldsMatched; 
 
     public SearchResult(String projectId, String sourceId, float maxScore, String fieldsMatched) {
 	this.sourceId = sourceId;
 	this.projectId = projectId;
 	this.maxScore = maxScore;
-	this.fieldsMatched = fieldsMatched;
+	this.fieldsMatched = new StringBuilder(fieldsMatched);
     }
 
     protected float getMaxScore() {
@@ -39,18 +39,17 @@ public class SearchResult implements Comparable <SearchResult> {
     }
 
     protected String getFieldsMatched() {
-	return fieldsMatched;
+	return fieldsMatched.toString();
     }
 
     public void combine(SearchResult other) {
 	if (other.getMaxScore() > maxScore) {
 	    maxScore = other.getMaxScore();
-	    fieldsMatched = other.getFieldsMatched() + "," + fieldsMatched;
+	    fieldsMatched.insert(0, ", ").insert(0, other.fieldsMatched);
 	} else {
 	    //	    fieldsMatched.append(other.getFieldsMatched()), if fieldsMatched were a StringBuffer
-	    fieldsMatched = fieldsMatched + "," + other.getFieldsMatched();
+	    fieldsMatched.append(",").append(other.fieldsMatched);
 	}
-
     }
 
     public int compareTo(SearchResult other) {
@@ -58,8 +57,9 @@ public class SearchResult implements Comparable <SearchResult> {
 
 	if (other.getMaxScore() > maxScore || (other.getMaxScore() == maxScore && sourceId.compareTo(other.getSourceId()) < 0)) {
 	    return -1;
-	} else if(other.getMaxScore() < maxScore || (other.getMaxScore() == maxScore && sourceId.compareTo(other.getSourceId()) > 0)) {
-	    return 1;
+	    // the next match condition is redundant with the else clause.
+//	} else if(other.getMaxScore() < maxScore || (other.getMaxScore() == maxScore && sourceId.compareTo(other.getSourceId()) > 0)) {
+//	    return 1;
 	} else {
 	    return 1;
 	}
