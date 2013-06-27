@@ -141,16 +141,14 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
   private static String join(ArrayList<String> parts, String delimiter) {
     boolean notFirstChunk = false;
 
-    StringBuffer conjunction = new StringBuffer("");
+    StringBuilder conjunction = new StringBuilder();
 
     for (String part : parts) {
       if (notFirstChunk) {
         conjunction.append(delimiter);
-      }
+      } else notFirstChunk = true;
 
       conjunction.append(part);
-
-      notFirstChunk = true;
     }
 
     return conjunction.toString();
@@ -282,13 +280,13 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
       Map<String, SearchResult> matches, StringBuilder message) {
     Collection<SearchResult> matchCollection = matches.values();
     SearchResult[] matchArray = matchCollection.toArray(new SearchResult[0]);
+    matches.clear();
     Arrays.sort(matchArray);
 
     // only return the max number of rows
     if (matchArray.length > MAX_RESULT_SIZE) { // results are truncated
-      message.append("The text search found " + matchArray.length
-          + " records, but only " + MAX_RESULT_SIZE + " can be displayed. "
-          + "Please use more specific search keywords.");
+      message.append("The text search can only process the first " + MAX_RESULT_SIZE + " records."
+          + "Please refine your search with more specific keywords.");
       return Arrays.copyOf(matchArray, MAX_RESULT_SIZE);
     } else
       return matchArray;
