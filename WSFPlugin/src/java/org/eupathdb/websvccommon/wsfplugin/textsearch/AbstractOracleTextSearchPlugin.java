@@ -47,6 +47,7 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
    * 
    * @see org.gusdb.wsf.WsfPlugin#getColumns()
    */
+  @Override
   public String[] getColumns() {
     return new String[] { COLUMN_RECORD_ID, COLUMN_PROJECT_ID, COLUMN_DATASETS,
         COLUMN_MAX_SCORE };
@@ -57,6 +58,7 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
    * 
    * @see org.gusdb.wsf.WsfPlugin#getRequiredParameters()
    */
+  @Override
   public String[] getRequiredParameterNames() {
     return new String[] { PARAM_TEXT_EXPRESSION, PARAM_DATASETS };
   }
@@ -66,6 +68,7 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
    * 
    * @see org.gusdb.wsf.plugin.WsfPlugin#validateParameters(java.util.Map)
    */
+  @Override
   public void validateParameters(WsfRequest request) throws WsfServiceException {
     // do nothing in this plugin
   }

@@ -52,17 +52,15 @@ public class SearchResult implements Comparable <SearchResult> {
 	}
     }
 
+    @Override
     public int compareTo(SearchResult other) {
-
-
-	if (other.getMaxScore() > maxScore || (other.getMaxScore() == maxScore && sourceId.compareTo(other.getSourceId()) < 0)) {
-	    return -1;
+      if (other.getMaxScore() > maxScore || (other.getMaxScore() == maxScore && sourceId.compareTo(other.getSourceId()) < 0)) {
+        return -1;
 	    // the next match condition is redundant with the else clause.
-//	} else if(other.getMaxScore() < maxScore || (other.getMaxScore() == maxScore && sourceId.compareTo(other.getSourceId()) > 0)) {
-//	    return 1;
-	} else {
-	    return 1;
-	}
+        // } else if(other.getMaxScore() < maxScore || (other.getMaxScore() == maxScore && sourceId.compareTo(other.getSourceId()) > 0)) {
+        // return 1;
+      } else {
+        return 1;
+      }
     }
-
 }
