@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+  <comment>The configuration file for Blast Plugin.</comment>
+  <!-- Required, the absolute path to the bin directory of your
+    BLAST application. If the path points to the bin directory, it should
+    end with a '/'; if the points to a script, for example, if you are
+    using the new NCBI BLAST+ with old parameter format, the path should
+    include "<....>/bin/legacy_blast.pl " in the end. Note that in this
+    case, the empty space at the end is needed. -->
+  <!--entry key="BlastPath">/opt/WU_BLAST/</entry-->
+  <entry key="BlastPath">/opt/ncbi-blast2/bin/</entry>
+
+  <!-- Optional, the temporary path for BLAST to make input files
+    and save output files. This entry is optional, and "/tmp/blast" as
+    default, if not specified. -->
+  <entry key="TempPath">/var/www/Common/tmp/blast</entry>
+
+  <!-- Optional, additional blast options that is set system wide. These
+    additional options will be applied to the blast search for all data
+    types. By default, no extra options will be used. For example, you put
+    "-best_hit_overhang=0.25" in this field to control the HSP matching
+    length for the new ncbi-blast+, or put "-putenv BLASTDB=your_db_path" to
+    control the default blastdb location for wu-blast.
+  <entry key="ExtraOptions"></entry>
+ -->
+
+  <!-- Optional, maximum running time for blast, in seconds. If blast runs
+    longer than the given timeout, an timeout exception will be thrown out,
+    and blast run will be terminated. This entry is optional, and default is
+    300 (i.e. 5 minutes) if not specified
+  <entry key="Timeout">300</entry>
+ -->
+
+  <!-- Optional, the regular expression used to match the source_id in the
+     defline. This regex, as well as the other regex in this config file,
+     supports only Java's flavor. The source_id can be included in a capture
+     group, and capture group index can be specified by SourceIdRegexIndex
+     option. By default, the following regex will be used:
+    
+  <entry key="IdentifierRegex"><![CDATA[^>*(?:[^\|]*\|)?(\S+)]]></entry>
+ -->
+
+  <!-- Optional, the regular expression used to match the organism in the
+    defline. The organism can be included in a group, and group index can be
+    specified by OrganismRegexIndex option. By default, the following regex
+    will be used: \|\s*organism=([^_|\s]+)
+  <entry key="OrganismRegex"><![CDATA[\|\s*organism=([^_|\s]+)]]></entry>
+ -->
+
+</properties>

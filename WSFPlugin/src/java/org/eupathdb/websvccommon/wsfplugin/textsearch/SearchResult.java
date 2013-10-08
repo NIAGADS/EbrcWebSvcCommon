@@ -22,11 +22,11 @@ public class SearchResult implements Comparable <SearchResult> {
 	this.fieldsMatched = new StringBuilder(fieldsMatched);
     }
 
-    protected float getMaxScore() {
+    public float getMaxScore() {
 	return maxScore;
     }
 
-    protected String getSourceId() {
+    public String getSourceId() {
 	return sourceId;
     }
 
@@ -34,11 +34,11 @@ public class SearchResult implements Comparable <SearchResult> {
 	sourceId = id;
     }
 
-    protected String getProjectId() {
+    public String getProjectId() {
 	return projectId;
     }
 
-    protected String getFieldsMatched() {
+    public String getFieldsMatched() {
 	return fieldsMatched.toString();
     }
 

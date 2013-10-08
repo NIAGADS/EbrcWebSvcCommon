@@ -17,6 +17,13 @@
       <property name="version" value="WDK_version_1-18"/>
     </ant>
   </target>  
+
+  <target name="EuPathSiteCommon-Installation">
+    <ant antfile="../EuPathSiteCommon/build.xml" target="EuPathSiteCommon-Installation">
+      <property name="project" value="WDK"/>
+      <property name="version" value="WDK_version_1-18"/>
+    </ant>
+  </target>  
     
   <target name="WDK-Checkout" unless="WDK.present"> 
     <ant target="defaultProjectCheckout" inheritAll="false">
@@ -48,13 +55,11 @@
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
 
   <target name="EuPathWebSvcCommon-Installation" depends="WDK-Installation,
+                                                          EuPathSiteCommon-Installation,
                                                           EuPathWebSvcCommon/WSFPlugin-Installation">
 
     <ant target="defaultProjectInstall"/>
 
-    <!-- copy the WDK-Clisnt.jar, which will be used by IDE -->
-    <copy  file="${targetDir}/lib/java/WSF-Client.jar"
-           toDir="../EuPathWebSvcCommon/WSFPlugin/lib/java" />
 
   </target>
 

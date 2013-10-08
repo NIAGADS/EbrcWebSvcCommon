@@ -8,17 +8,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.eupathdb.websvccommon.wsfplugin.EuPathServiceException;
 import org.gusdb.wdk.model.WdkModelException;
 import org.gusdb.wdk.model.dbms.ConnectionContainer;
 import org.gusdb.wsf.plugin.AbstractPlugin;
-import org.gusdb.wsf.plugin.WsfRequest;
-import org.gusdb.wsf.plugin.WsfServiceException;
+import org.gusdb.wsf.plugin.PluginRequest;
+import org.gusdb.wsf.plugin.WsfPluginException;
 
 /**
  * @author John I
@@ -39,8 +35,6 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
   public static final String COLUMN_PROJECT_ID = "ProjectId";
   public static final String COLUMN_DATASETS = "Datasets";
   public static final String COLUMN_MAX_SCORE = "MaxScore";
-
-  private static final int MAX_RESULT_SIZE = 20000;
 
   /*
    * (non-Javadoc)
@@ -69,7 +63,8 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
    * @see org.gusdb.wsf.plugin.WsfPlugin#validateParameters(java.util.Map)
    */
   @Override
-  public void validateParameters(WsfRequest request) throws WsfServiceException {
+  public void validateParameters(PluginRequest request)
+      throws WsfPluginException {
     // do nothing in this plugin
   }
 
@@ -149,7 +144,8 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
     for (String part : parts) {
       if (notFirstChunk) {
         conjunction.append(delimiter);
-      } else notFirstChunk = true;
+      } else
+        notFirstChunk = true;
 
       conjunction.append(part);
     }
@@ -178,9 +174,8 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
   // }
   // }
 
-  protected Map<String, SearchResult> textSearch(PreparedStatement query,
-      String primaryKeyColumn) throws WsfServiceException, SQLException {
-    Map<String, SearchResult> matches = new HashMap<String, SearchResult>();
+  protected void textSearch(ResultContainer results, PreparedStatement query,
+      String primaryKeyColumn) throws WsfPluginException, SQLException {
     ResultSet rs = null;
     try {
       logger.info("about to execute text-search query (set org.gusdb logging to \"debug\" to see its text)");
@@ -190,16 +185,12 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
       while (rs.next()) {
         String sourceId = rs.getString(primaryKeyColumn);
 
-        if (matches.containsKey(sourceId)) {
-          throw new WsfServiceException("duplicate sourceId " + sourceId);
-        } else {
-          SearchResult match = getSearchResults(rs, sourceId);
-          matches.put(sourceId, match);
+        if (results.hasResult(sourceId)) {
+          throw new WsfPluginException("duplicate sourceId " + sourceId);
         }
 
-        // only read to max number of rows
-        if (matches.size() >= MAX_RESULT_SIZE)
-          break;
+        SearchResult match = getSearchResults(rs, sourceId);
+        results.addResult(match);
       }
       logger.info("finished fetching rows");
     } catch (SQLException ex) {
@@ -208,8 +199,9 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
       String message;
       if (ex.getMessage().indexOf("DRG-51030") >= 0) {
         // DRG-51030: wildcard query expansion resulted in too many terms
-        message = new String(
-            "Search term with wildcard (asterisk) characters matches too many keywords. Please include more non-wildcard characters.");
+        message = new String("Search term with wildcard (asterisk) characters "
+            + "matches too many keywords. Please include more non-wildcard "
+            + "characters.");
       } else if (ex.getMessage().indexOf("ORA-01460") >= 0) {
         // ORA-01460: unimplemented or unreasonable conversion requested
         // it's unimplemented; it's unreasonable; it's outrageous, egregious,
@@ -219,50 +211,18 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
       } else {
         message = ex.getMessage();
       }
-      throw new WsfServiceException(message, ex);
+      throw new WsfPluginException(message, ex);
     } catch (Exception ex) {
       logger.info("caught Exception " + ex.getMessage());
       ex.printStackTrace();
-      throw new WsfServiceException(ex);
+      throw new WsfPluginException(ex);
     } finally {
       if (rs != null)
         rs.close();
     }
-
-    return matches;
   }
 
-  // requires two part key. if only have one part, then query should return fake
-  // second part
-  protected String[][] flattenMatches(SearchResult[] matches,
-      String[] orderedColumns) throws WsfServiceException {
-
-    // validate that WDK expects the columns in the order we want
-    String[] expectedColumns = { "RecordID", "ProjectId", "MaxScore",
-        "Datasets" };
-
-    int i = 0;
-    for (String expected : expectedColumns) {
-      if (!expected.equals(orderedColumns[i])) {
-        throw new WsfServiceException("misordered WSF column: expected \""
-            + expected + "\", got \"" + orderedColumns[i]);
-      }
-      i++;
-    }
-
-    String[][] flat = new String[matches.length][];
-
-    i = 0;
-    for (SearchResult match : matches) {
-      String[] a = { match.getSourceId(), match.getProjectId(),
-          Float.toString(match.getMaxScore()), match.getFieldsMatched() };
-      flat[i++] = a;
-    }
-
-    return flat;
-  }
-
-  protected SearchResult getSearchResults(ResultSet rs, String sourceId)
+  private SearchResult getSearchResults(ResultSet rs, String sourceId)
       throws SQLException {
     return new SearchResult(rs.getString("project_id"), sourceId,
         rs.getFloat("max_score"), rs.getString("fields_matched"));
@@ -277,21 +237,5 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
           + "container is declared in the context.");
 
     return container.getConnection(connectionKey);
-  }
-
-  protected SearchResult[] getMatchesSortedArray(
-      Map<String, SearchResult> matches, StringBuilder message) {
-    Collection<SearchResult> matchCollection = matches.values();
-    SearchResult[] matchArray = matchCollection.toArray(new SearchResult[0]);
-    matches.clear();
-    Arrays.sort(matchArray);
-
-    // only return the max number of rows
-    if (matchArray.length > MAX_RESULT_SIZE) { // results are truncated
-      message.append("The text search can only process the first " + MAX_RESULT_SIZE + " records."
-          + "Please refine your search with more specific keywords.");
-      return Arrays.copyOf(matchArray, MAX_RESULT_SIZE);
-    } else
-      return matchArray;
   }
 }
