@@ -11,6 +11,7 @@ import org.gusdb.wsf.plugin.WsfPluginException;
 
 public abstract class NcbiBlastCommandFormatter implements CommandFormatter {
 
+  @SuppressWarnings("unused")
   private static final Logger logger = Logger.getLogger(NcbiBlastCommandFormatter.class);
 
   protected BlastConfig config;
