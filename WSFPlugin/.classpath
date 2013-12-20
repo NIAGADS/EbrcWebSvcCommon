@@ -8,5 +8,6 @@
 	<classpathentry kind="lib" path="/WSF Plugin/lib/java/log4j-1.2.17.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/WDK Controller"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/EuPath Common Model"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/fgputil-util"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>

@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 import org.eupathdb.websvccommon.wsfplugin.EuPathServiceException;
+import org.gusdb.fgputil.db.SqlUtils;
 import org.gusdb.wdk.model.WdkModelException;
 import org.gusdb.wdk.model.dbms.ConnectionContainer;
 import org.gusdb.wsf.plugin.AbstractPlugin;
@@ -175,7 +176,7 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
   // }
 
   protected void textSearch(ResultContainer results, PreparedStatement query,
-      String primaryKeyColumn) throws WsfPluginException, SQLException {
+      String primaryKeyColumn) throws WsfPluginException {
     ResultSet rs = null;
     try {
       logger.info("about to execute text-search query (set org.gusdb logging to \"debug\" to see its text)");
@@ -217,8 +218,7 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
       ex.printStackTrace();
       throw new WsfPluginException(ex);
     } finally {
-      if (rs != null)
-        rs.close();
+      SqlUtils.closeQuietly(rs);
     }
   }
 
