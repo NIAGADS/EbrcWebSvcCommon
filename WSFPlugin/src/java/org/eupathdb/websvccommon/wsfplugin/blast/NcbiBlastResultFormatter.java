@@ -165,6 +165,8 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
     String[] evalueParts = evalue.split("e");
     String evalueExp = (evalueParts.length == 2) ? evalueParts[1] : "0";
     String evalueMant = evalueParts[0];
+    // sometimes the mant part is empty if the blast score is very high, assign a default 1.
+    if (evalueMant.length() == 0) evalueMant = "1";
     String[] row = new String[columns.length];
     for (int i = 0; i < columns.length; i++) {
       if (columns[i].equals(AbstractBlastPlugin.COLUMN_ALIGNMENT)) {
