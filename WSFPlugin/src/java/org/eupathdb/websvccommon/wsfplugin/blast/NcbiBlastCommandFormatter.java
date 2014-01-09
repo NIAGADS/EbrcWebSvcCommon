@@ -16,7 +16,8 @@ public abstract class NcbiBlastCommandFormatter implements CommandFormatter {
 
   protected BlastConfig config;
 
-  public abstract String getBlastDatabase(Map<String, String> params);
+  public abstract String getBlastDatabase(Map<String, String> params)
+      throws WsfPluginException;
 
   @Override
   public void setConfig(BlastConfig config) {
