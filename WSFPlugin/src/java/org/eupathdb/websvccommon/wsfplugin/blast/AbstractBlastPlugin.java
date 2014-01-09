@@ -173,9 +173,14 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
     }
   }
 
-  private File getSequenceFile(Map<String, String> params) throws IOException {
+  private File getSequenceFile(Map<String, String> params) throws IOException, WsfPluginException {
     // get sequence and save it into the sequence file
-    String sequence = params.get(PARAM_SEQUENCE);
+    String sequence = params.get(PARAM_SEQUENCE).trim();
+    
+    // check if the input contains multiple sequences
+    if (sequence.indexOf('>', 1) > 0)
+      throw new WsfPluginException("Only one input sequence is allowed");
+    
     File seqFile = File.createTempFile(this.getClass().getSimpleName() + "_",
         ".in", config.getTempDir());
     PrintWriter out = new PrintWriter(new FileWriter(seqFile));
