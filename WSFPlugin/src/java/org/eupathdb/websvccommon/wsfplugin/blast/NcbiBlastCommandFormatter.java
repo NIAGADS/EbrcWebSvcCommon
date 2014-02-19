@@ -59,7 +59,15 @@ public abstract class NcbiBlastCommandFormatter implements CommandFormatter {
         cmds.add(alignments);
       } else if (paramName.equals(AbstractBlastPlugin.PARAM_FILTER)) {
         cmds.add("-F");
-        cmds.add(params.get(paramName).equals("yes") ? "m S" : "F");
+				// cmds.add(params.get(paramName).equals("yes") ? "m S" : "F");
+				if (params.get(paramName).equals("no")) 
+						{cmds.add("F");}
+				else {
+						if ( blastApp.equals("blastn") ) 
+								{ cmds.add("m D"); }
+						else 
+								{ cmds.add("m S");}
+				}
       }
     }
 
