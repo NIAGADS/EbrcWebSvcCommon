@@ -106,7 +106,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       // get score and e-value from summary;
       String summary = summaries.get(sourceId);
       String evalue = getField(summary, findEvalue(summary));
-      int score = Integer.valueOf(getField(summary, findScore(summary)));
+      int score = Double.valueOf(getField(summary, findScore(summary))).intValue();
 
       // insert id url into the summary
       summary = insertUrl(summary, findSourceId(summary), idUrl);
