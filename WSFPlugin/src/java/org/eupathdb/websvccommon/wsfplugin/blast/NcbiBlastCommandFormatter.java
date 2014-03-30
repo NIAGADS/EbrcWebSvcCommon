@@ -47,6 +47,10 @@ public abstract class NcbiBlastCommandFormatter implements CommandFormatter {
     cmds.add("-o");
     cmds.add(outFile.getAbsolutePath());
 
+ // set to use 4 cores
+    cmds.add("-a");
+    cmds.add("4");
+
     for (String paramName : params.keySet()) {
       if (paramName.equals(AbstractBlastPlugin.PARAM_EVALUE)) {
         cmds.add("-e");
