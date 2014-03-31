@@ -176,12 +176,14 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
   // }
 
   protected void textSearch(ResultContainer results, PreparedStatement query,
-      String primaryKeyColumn) throws WsfPluginException {
+			    String primaryKeyColumn, String sql, String name) throws WsfPluginException {
     ResultSet rs = null;
     try {
-      logger.info("about to execute text-search query (set org.gusdb logging to \"debug\" to see its text)");
+      logger.info("about to execute text-search query \"" + name
+		  + "\" (set org.gusdb logging to \"debug\" to see its text)");
       query.setFetchSize(100);
-      rs = query.executeQuery();
+      // rs = query.executeQuery();
+      rs = SqlUtils.executePreparedQuery(query, sql, name);
       logger.info("finshed execute");
       while (rs.next()) {
         String sourceId = rs.getString(primaryKeyColumn);
