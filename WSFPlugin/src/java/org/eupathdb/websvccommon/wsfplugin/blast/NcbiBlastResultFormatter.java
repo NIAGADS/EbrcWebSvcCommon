@@ -95,7 +95,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       // get the defline, and get organism from it
       String defline = alignment.substring(0, alignment.indexOf("Length = "));
 			String organism = "none";
-			try {
+			try { //Ortho does not have organism info in defline
 					organism = getField(defline, findOrganism(defline));
 			}
 			catch (NullPointerException e){}
