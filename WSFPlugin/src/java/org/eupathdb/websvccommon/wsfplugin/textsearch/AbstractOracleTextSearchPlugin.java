@@ -196,6 +196,7 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
         results.addResult(match);
       }
       logger.info("finished fetching rows");
+      SqlUtils.closeResultSetOnly(rs);
     } catch (SQLException ex) {
       logger.info("caught Exception " + ex.getMessage());
       ex.printStackTrace();
