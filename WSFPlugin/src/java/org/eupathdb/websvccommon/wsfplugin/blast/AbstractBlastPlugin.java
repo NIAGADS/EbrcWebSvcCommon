@@ -155,24 +155,32 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
       long timeout = config.getTimeout();
       StringBuffer output = new StringBuffer();
       int signal = invokeCommand(command, output, timeout);
-
-      logger.debug("BLAST output: \n------------------\n" + output.toString()
-          + "\n-----------------\n");
+      logger.debug("BLAST output: \n------\n" + output.toString() + "\n-----\n");
 
       // if the invocation succeeds, prepare the result; otherwise,
       // prepare results for failure scenario
-      logger.info("\nPreparing the result");
-      String recordClass = params.get(PARAM_RECORD_CLASS);
-      String[] orderedColumns = request.getOrderedColumns();
-      String message = resultFormatter.formatResult(response, orderedColumns,
-          outFile, recordClass, dbType);
-      logger.info("\nResult prepared");
+      logger.info("Preparing the result... Output File Size is: " + outFile.length() + "\n\n");
+			if (outFile.length() > 90000000) {
+				logger.info("Will not prepare Result, too big BYE\n");
+				response.setSignal(signal);
+				response.setMessage("\n\n***** Sorry we cannot handle this big result, please repeat your BLAST using fewer results or a smaller sequence\n");
+			}
+			else {
+				String recordClass = params.get(PARAM_RECORD_CLASS);
+				String[] orderedColumns = request.getOrderedColumns();
+				String message = resultFormatter.formatResult(response, orderedColumns,
+					outFile, recordClass, dbType);
+				logger.info("Result prepared BYE\n");
+				logger.debug("signal is:" + signal + "\n");
+				logger.debug("message is:" + message + "\n");
 
-      response.setSignal(signal);
-      response.setMessage(message + output.toString());
+				response.setSignal(signal);
+				response.setMessage(message + output.toString());
+			}
       response.flush();
+
     } catch (IOException ex) {
-      logger.error(ex);
+				logger.error("IOException: " + ex);
       throw new WsfPluginException(ex);
     } finally {
       cleanup();
