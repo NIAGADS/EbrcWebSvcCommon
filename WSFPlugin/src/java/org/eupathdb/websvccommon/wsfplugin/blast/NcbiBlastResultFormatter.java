@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 
+import org.apache.log4j.Logger;
 import org.eupathdb.common.model.view.BlastSummaryViewHandler;
 import org.eupathdb.websvccommon.wsfplugin.EuPathServiceException;
 import org.gusdb.wsf.plugin.PluginResponse;
@@ -16,6 +17,7 @@ import org.gusdb.wsf.plugin.WsfPluginException;
 
 public class NcbiBlastResultFormatter extends AbstractResultFormatter {
 
+	private static final Logger logger = Logger.getLogger(NcbiBlastResultFormatter.class);
   private static final String DB_TYPE_GENOME = "Genome";
 
   @Override
@@ -129,12 +131,13 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
   }
 
   private String insertGbrowseLink(String alignment, String projectId,
-      String sourceId) {
+    String sourceId) {
+		//logger.debug("insertGBrowseLink: alignment: ********\n" + alignment + "\n*******\n");
     StringBuilder buffer = new StringBuilder();
-    String[] pieces = alignment.split("Positives =");
+    String[] pieces = alignment.split("Strand =");
     for (String piece : pieces) {
       if (buffer.length() > 0)
-        buffer.append("Positives = ");
+        buffer.append("Strand = ");
       Matcher matcher = SUBJECT_PATTERN.matcher(piece);
       int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
       while (matcher.find()) {
@@ -155,9 +158,9 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
         gb_url += "/cgi-bin/gbrowse/" + projectId.toLowerCase() + "/?name="
             + sourceId + ":" + min + "-" + max;
         buffer.append("\n<a href=\"" + gb_url + "\"> <B><font color=\"red\">"
-            + "Link to Genome Browser</font></B></a>,   Positives = ");
+            + "Link to Genome Browser</font></B></a>,   Strand = ");
       } else if (buffer.length() > 0)
-        buffer.append("Positives = ");
+        buffer.append("Strand = ");
       buffer.append(piece);
     }
     return buffer.toString();
