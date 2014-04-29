@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import org.apache.log4j.Logger;
 import org.eupathdb.websvccommon.wsfplugin.EuPathServiceException;
 import org.gusdb.fgputil.db.SqlUtils;
 import org.gusdb.wdk.model.WdkModelException;
@@ -22,6 +23,8 @@ import org.gusdb.wsf.plugin.WsfPluginException;
  * @created Nov 16, 2008
  */
 public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
+
+  private static final Logger logger = Logger.getLogger(AbstractOracleTextSearchPlugin.class);
 
   // required parameter definition
   public static final String PARAM_TEXT_EXPRESSION = "text_expression";
