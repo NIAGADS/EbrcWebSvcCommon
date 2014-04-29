@@ -54,14 +54,14 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
   public AbstractBlastPlugin(CommandFormatter commandFormatter,
       ResultFormatter resultFormatter) {
     super(FILE_CONFIG);
-    logger.info("Instantiated AbstractBlastPlugin.  Ready for initialization.");
-    throw new RuntimeException("Test exception:" +
-        " info? " + logger.isInfoEnabled() +
-        " debug? " + logger.isDebugEnabled() +
-        " trace? " + logger.isTraceEnabled()
-    );
-    //this.commandFormatter = commandFormatter;
-    //this.resultFormatter = resultFormatter;
+    //logger.info("Instantiated AbstractBlastPlugin.  Ready for initialization.");
+    //throw new RuntimeException("Test exception:" +
+    //    " info? " + logger.isInfoEnabled() +
+    //    " debug? " + logger.isDebugEnabled() +
+    //    " trace? " + logger.isTraceEnabled()
+    //);
+    this.commandFormatter = commandFormatter;
+    this.resultFormatter = resultFormatter;
   }
 
   /*
