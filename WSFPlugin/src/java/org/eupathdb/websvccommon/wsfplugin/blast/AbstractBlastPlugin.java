@@ -21,6 +21,7 @@ import org.gusdb.wsf.plugin.WsfPluginException;
 import org.xml.sax.SAXException;
 
 public abstract class AbstractBlastPlugin extends AbstractPlugin {
+	public static final int MAX_OUTFILE_SIZE = 90000000; //90MB
 
   // ========== Common blast params ==========
   public static final String PARAM_DATA_TYPE = "BlastDatabaseType";
@@ -154,10 +155,10 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
       // if the invocation succeeds, prepare the result; otherwise,
       // prepare results for failure scenario
       logger.info("Preparing the result... Output File Size is: " + outFile.length() + "\n\n");
-			if (outFile.length() > 90000000) {
+			if (outFile.length() > MAX_OUTFILE_SIZE) {
 				logger.info("Will not prepare Result, too big BYE\n");
 				response.setSignal(signal);
-				response.setMessage("\n\n***** Sorry we cannot handle this big result, please repeat your BLAST using fewer results or a smaller sequence\n");
+				response.setMessage("\n\n***** Sorry we cannot handle this big result, please repeat your BLAST using fewer results (parameter V=B) or a smaller sequence\n");
 			}
 			else {
 				String recordClass = params.get(PARAM_RECORD_CLASS);
