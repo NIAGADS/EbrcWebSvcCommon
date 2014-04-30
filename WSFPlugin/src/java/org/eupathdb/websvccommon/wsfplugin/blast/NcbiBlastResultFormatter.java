@@ -17,7 +17,9 @@ import org.gusdb.wsf.plugin.WsfPluginException;
 
 public class NcbiBlastResultFormatter extends AbstractResultFormatter {
 
-	private static final Logger logger = Logger.getLogger(NcbiBlastResultFormatter.class);
+  @SuppressWarnings("unused")
+  private static final Logger logger = Logger.getLogger(NcbiBlastResultFormatter.class);
+
   private static final String DB_TYPE_GENOME = "Genome";
 
   @Override
