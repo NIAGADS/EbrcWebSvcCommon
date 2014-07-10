@@ -4,23 +4,23 @@
   <!-- oooooooooooooooooooooooooo  Dependencies  oooooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
 
-  <import file="${projectsDir}/WDK/build.xml" />
+  <import file="${projectsDir}/EuPathSiteCommon/build.xml" />
 
     
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooo    Checkout    oooooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
   <target name="EuPathWebSvcCommon-ChildCheckout">
-    <available file="${projectsDir}/WDK" type="dir"  property="WDK.present" />
-    <antcall target="WDK-Checkout"/>
+    <available file="${projectsDir}/EuPathSiteCommon" type="dir"  property="EuPathSiteCommon.present" />
+    <antcall target="EuPathSiteCommon-Checkout"/>
   </target>
   
 
-  <target name="WDK-Checkout" unless="WDK.present">
+  <target name="EuPathSiteCommon-Checkout" unless="EuPathSiteCommon.present">
     <ant target="defaultProjectCheckout" inheritAll="false">
-      <property name="svnurl" value="https://www.cbil.upenn.edu/svn/gus/WDK"/>
-      <property name="project" value="WDK"/>
-      <property name="version" value="WDK_version_1-28"/>
+      <property name="svnurl" value="https://www.cbil.upenn.edu/svn/apidb/EuPathSiteCommon"/>
+      <property name="project" value="EuPathSiteCommon"/>
+      <property name="version" value=""/>
     </ant>
   </target>
 
@@ -30,7 +30,7 @@
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
   <target name="EuPathWebSvcCommon-ChildUpdate">
     <ant target="defaultProjectUpdate">
-      <property name="project" value="WDK"/>
+      <property name="project" value="EuPathSiteCommon"/>
     </ant>
   </target>
 
@@ -38,7 +38,7 @@
   <!-- oooooooooooooooooooooooooo  Installation  oooooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
 
-  <target name="EuPathWebSvcCommon-Installation" depends="WDK-Installation,
+  <target name="EuPathWebSvcCommon-Installation" depends="EuPathSiteCommon-Installation,
                                                           EuPathWebSvcCommon/WSFPlugin-Installation">
 
     <ant target="defaultProjectInstall">
@@ -63,7 +63,7 @@
   <!-- oooooooooooooooooooooooo  Web Installation  oooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
 
-  <target name="EuPathWebSvcCommon-WebInstallation" depends="WSF-WebInstallation,
+  <target name="EuPathWebSvcCommon-WebInstallation" depends="EuPathSiteCommon-WebInstallation,
                                                              EuPathWebSvcCommon-Installation">
 
   </target>

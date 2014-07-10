@@ -3,17 +3,13 @@
  */
 package org.eupathdb.websvccommon.wsfplugin.textsearch;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
-import org.eupathdb.websvccommon.wsfplugin.EuPathServiceException;
 import org.gusdb.fgputil.db.SqlUtils;
-import org.gusdb.wdk.model.WdkModelException;
-import org.gusdb.wdk.model.dbms.ConnectionContainer;
 import org.gusdb.wsf.plugin.AbstractPlugin;
 import org.gusdb.wsf.plugin.PluginRequest;
 import org.gusdb.wsf.plugin.WsfPluginException;
@@ -68,7 +64,7 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
    */
   @Override
   public void validateParameters(PluginRequest request)
-      throws WsfPluginException {
+       {
     // do nothing in this plugin
   }
 
@@ -232,16 +228,5 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
       throws SQLException {
     return new SearchResult(rs.getString("project_id"), sourceId,
         rs.getFloat("max_score"), rs.getString("fields_matched"));
-  }
-
-  protected Connection getDbConnection(String containerKey, String connectionKey)
-      throws SQLException, EuPathServiceException, WdkModelException {
-    ConnectionContainer container = (ConnectionContainer) context.get(containerKey);
-    if (container == null)
-      throw new EuPathServiceException("The container cannot be found in the "
-          + "context with key: " + containerKey + ". Please check if the "
-          + "container is declared in the context.");
-
-    return container.getConnection(connectionKey);
   }
 }

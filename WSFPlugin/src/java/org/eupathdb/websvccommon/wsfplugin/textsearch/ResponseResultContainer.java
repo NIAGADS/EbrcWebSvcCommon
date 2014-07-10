@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.gusdb.wsf.plugin.PluginResponse;
+import org.gusdb.wsf.plugin.WsfException;
 import org.gusdb.wsf.plugin.WsfPluginException;
 
 import static org.eupathdb.websvccommon.wsfplugin.textsearch.AbstractOracleTextSearchPlugin.*;
@@ -41,7 +42,7 @@ public class ResponseResultContainer implements ResultContainer {
    * (org.eupathdb.websvccommon.wsfplugin.textsearch.SearchResult)
    */
   @Override
-  public void addResult(SearchResult result) throws WsfPluginException {
+  public void addResult(SearchResult result) throws WsfException {
     String sourceId = result.getSourceId();
 
     // convert the result to a String[] array
