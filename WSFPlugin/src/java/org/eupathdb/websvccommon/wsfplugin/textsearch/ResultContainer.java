@@ -1,6 +1,6 @@
 package org.eupathdb.websvccommon.wsfplugin.textsearch;
 
-import org.gusdb.wsf.plugin.WsfException;
+import org.gusdb.wsf.common.WsfException;
 
 public interface ResultContainer {
 

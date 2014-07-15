@@ -4,7 +4,7 @@ import java.io.File;
 
 import org.eupathdb.common.model.ProjectMapper;
 import org.gusdb.wsf.plugin.PluginResponse;
-import org.gusdb.wsf.plugin.WsfException;
+import org.gusdb.wsf.common.WsfException;
 
 public interface ResultFormatter {
 

@@ -12,8 +12,8 @@ import java.util.regex.Matcher;
 import org.apache.log4j.Logger;
 import org.eupathdb.common.model.view.BlastSummaryViewHandler;
 import org.eupathdb.websvccommon.wsfplugin.EuPathServiceException;
+import org.gusdb.wsf.common.WsfException;
 import org.gusdb.wsf.plugin.PluginResponse;
-import org.gusdb.wsf.plugin.WsfException;
 
 public class NcbiBlastResultFormatter extends AbstractResultFormatter {
 
