@@ -12,8 +12,9 @@ import java.util.regex.Matcher;
 import org.apache.log4j.Logger;
 import org.eupathdb.common.model.view.BlastSummaryViewHandler;
 import org.eupathdb.websvccommon.wsfplugin.EuPathServiceException;
-import org.gusdb.wsf.common.WsfException;
+import org.gusdb.wsf.plugin.PluginModelException;
 import org.gusdb.wsf.plugin.PluginResponse;
+import org.gusdb.wsf.plugin.PluginUserException;
 
 public class NcbiBlastResultFormatter extends AbstractResultFormatter {
 
@@ -23,9 +24,8 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
   private static final String DB_TYPE_GENOME = "Genome";
 
   @Override
-  public String formatResult(PluginResponse response, String[] orderedColumns,
-      File outFile, String recordClass, String dbType)
-      throws WsfException {
+  public String formatResult(PluginResponse response, String[] orderedColumns, File outFile,
+      String recordClass, String dbType) throws PluginUserException, PluginModelException {
 
     // read and parse the output
     StringBuilder content = new StringBuilder();
@@ -42,7 +42,8 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
             // found the end of summary section, no need to output empty line,
             // since it's already been written to the content.
             inSummary = false;
-          } else {
+          }
+          else {
             // get source id, and store the summary line for later process,
             // since
             // some of the info here might be truncated, and can only be
@@ -51,58 +52,61 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
             String sourceId = getField(line, findSourceId(line));
             summaries.put(sourceId, lineTrimmed);
           }
-        } else if (inAlignment) {
+        }
+        else if (inAlignment) {
           if (lineTrimmed.startsWith("Database:")) { // end of alignment section
             inAlignment = false;
             // process previous alignment
-            processAlignment(response, orderedColumns, recordClass, dbType,
-                summaries, alignment.toString());
+            processAlignment(response, orderedColumns, recordClass, dbType, summaries, alignment.toString());
             content.append(line).append(newline);
-          } else {
+          }
+          else {
             if (line.startsWith(">")) { // start of a new alignment
               // process previous alignment
-              processAlignment(response, orderedColumns, recordClass, dbType,
-                  summaries, alignment.toString());
+              processAlignment(response, orderedColumns, recordClass, dbType, summaries, alignment.toString());
               alignment = new StringBuilder();
             }
             alignment.append(line).append(newline);
           }
-        } else { // not in summary nor in alignment
+        }
+        else { // not in summary nor in alignment
           if (lineTrimmed.startsWith("Sequences producing significant alignments")) {
             // found the start of the summary section
             inSummary = true;
             content.append(newline + BlastSummaryViewHandler.MACRO_SUMMARY + newline + newline);
             // read and skip an empty line
             reader.readLine();
-          } else if (line.startsWith(">")) {
+          }
+          else if (line.startsWith(">")) {
             // found the first alignment section
             inAlignment = true;
             content.append(newline + BlastSummaryViewHandler.MACRO_ALIGNMENT + newline + newline);
             // add the line to the alignment
             alignment.append(line).append(newline);
-          } else {
+          }
+          else {
             content.append(line).append(newline);
           }
         }
       }
       reader.close();
-    } catch (IOException ex) {
+    }
+    catch (IOException ex) {
       throw new EuPathServiceException(ex);
     }
     return content.toString();
   }
 
-  private void processAlignment(PluginResponse response, String[] columns,
-      String recordClass, String dbType, Map<String, String> summaries,
-      String alignment) throws WsfException {
+  private void processAlignment(PluginResponse response, String[] columns, String recordClass, String dbType,
+      Map<String, String> summaries, String alignment) throws PluginUserException, PluginModelException {
     try {
       // get the defline, and get organism from it
       String defline = alignment.substring(0, alignment.indexOf("Length = "));
-			String organism = "none";
-			try { //Ortho does not have organism info in defline
-					organism = getField(defline, findOrganism(defline));
-			}
-			catch (NullPointerException e){}
+      String organism = "none";
+      try { // Ortho does not have organism info in defline
+        organism = getField(defline, findOrganism(defline));
+      }
+      catch (NullPointerException e) {}
       String projectId = getProject(organism);
 
       // get the source id in the alignment, and insert a link there
@@ -124,17 +128,16 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
         alignment = insertGbrowseLink(alignment, projectId, sourceId);
 
       // format and write the row
-      String[] row = formatRow(columns, projectId, sourceId, summary,
-          alignment, evalue, score);
+      String[] row = formatRow(columns, projectId, sourceId, summary, alignment, evalue, score);
       response.addRow(row);
-    } catch (SQLException ex) {
+    }
+    catch (SQLException ex) {
       throw new EuPathServiceException(ex);
     }
   }
 
-  private String insertGbrowseLink(String alignment, String projectId,
-    String sourceId) {
-		//logger.debug("insertGBrowseLink: alignment: ********\n" + alignment + "\n*******\n");
+  private String insertGbrowseLink(String alignment, String projectId, String sourceId) {
+    // logger.debug("insertGBrowseLink: alignment: ********\n" + alignment + "\n*******\n");
     StringBuilder buffer = new StringBuilder();
     String[] pieces = alignment.split("Strand =");
     for (String piece : pieces) {
@@ -157,44 +160,51 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       // check if any subject has been found
       if (min <= max) {
         String gb_url = getBaseUrl(projectId);
-        gb_url += "/cgi-bin/gbrowse/" + projectId.toLowerCase() + "/?name="
-            + sourceId + ":" + min + "-" + max;
-        buffer.append("\n<a href=\"" + gb_url + "\"> <B><font color=\"red\">"
-            + "Link to Genome Browser</font></B></a>,   Strand = ");
-      } else if (buffer.length() > 0)
+        gb_url += "/cgi-bin/gbrowse/" + projectId.toLowerCase() + "/?name=" + sourceId + ":" + min + "-" +
+            max;
+        buffer.append("\n<a href=\"" + gb_url + "\"> <B><font color=\"red\">" +
+            "Link to Genome Browser</font></B></a>,   Strand = ");
+      }
+      else if (buffer.length() > 0)
         buffer.append("Strand = ");
       buffer.append(piece);
     }
     return buffer.toString();
   }
 
-  private String[] formatRow(String[] columns, String projectId,
-      String sourceId, String summary, String alignment, String evalue,
-      int score) throws EuPathServiceException {
+  private String[] formatRow(String[] columns, String projectId, String sourceId, String summary,
+      String alignment, String evalue, int score) throws EuPathServiceException {
     String[] evalueParts = evalue.split("e");
     String evalueExp = (evalueParts.length == 2) ? evalueParts[1] : "0";
     String evalueMant = evalueParts[0];
     // sometimes the mant part is empty if the blast score is very high, assign a default 1.
-    if (evalueMant.length() == 0) evalueMant = "1";
+    if (evalueMant.length() == 0)
+      evalueMant = "1";
     String[] row = new String[columns.length];
     for (int i = 0; i < columns.length; i++) {
       if (columns[i].equals(AbstractBlastPlugin.COLUMN_ALIGNMENT)) {
         row[i] = alignment;
-      } else if (columns[i].equals(AbstractBlastPlugin.COLUMN_EVALUE_EXP)) {
+      }
+      else if (columns[i].equals(AbstractBlastPlugin.COLUMN_EVALUE_EXP)) {
         row[i] = evalueExp;
-      } else if (columns[i].equals(AbstractBlastPlugin.COLUMN_EVALUE_MANT)) {
+      }
+      else if (columns[i].equals(AbstractBlastPlugin.COLUMN_EVALUE_MANT)) {
         row[i] = evalueMant;
-      } else if (columns[i].equals(AbstractBlastPlugin.COLUMN_IDENTIFIER)) {
+      }
+      else if (columns[i].equals(AbstractBlastPlugin.COLUMN_IDENTIFIER)) {
         row[i] = sourceId;
-      } else if (columns[i].equals(AbstractBlastPlugin.COLUMN_PROJECT_ID)) {
+      }
+      else if (columns[i].equals(AbstractBlastPlugin.COLUMN_PROJECT_ID)) {
         row[i] = projectId;
-      } else if (columns[i].equals(AbstractBlastPlugin.COLUMN_SCORE)) {
+      }
+      else if (columns[i].equals(AbstractBlastPlugin.COLUMN_SCORE)) {
         row[i] = Integer.toString(score);
-      } else if (columns[i].equals(AbstractBlastPlugin.COLUMN_SUMMARY)) {
+      }
+      else if (columns[i].equals(AbstractBlastPlugin.COLUMN_SUMMARY)) {
         row[i] = summary;
-      } else {
-        throw new EuPathServiceException("Unsupported blast result column: "
-            + columns[i]);
+      }
+      else {
+        throw new EuPathServiceException("Unsupported blast result column: " + columns[i]);
       }
     }
     return row;

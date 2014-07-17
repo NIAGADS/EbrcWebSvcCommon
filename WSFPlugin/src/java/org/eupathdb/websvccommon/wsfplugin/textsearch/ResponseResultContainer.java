@@ -13,9 +13,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.gusdb.wsf.common.WsfException;
+import org.gusdb.wsf.plugin.PluginModelException;
 import org.gusdb.wsf.plugin.PluginResponse;
-import org.gusdb.wsf.plugin.WsfPluginException;
+import org.gusdb.wsf.plugin.PluginUserException;
 
 /**
  * @author jerric
@@ -45,7 +45,7 @@ public class ResponseResultContainer implements ResultContainer {
    * (org.eupathdb.websvccommon.wsfplugin.textsearch.SearchResult)
    */
   @Override
-  public void addResult(SearchResult result) throws WsfException {
+  public void addResult(SearchResult result) throws PluginModelException, PluginUserException {
     String sourceId = result.getSourceId();
 
     // convert the result to a String[] array
@@ -60,7 +60,7 @@ public class ResponseResultContainer implements ResultContainer {
       } else if (column.equals(COLUMN_MAX_SCORE)) {
         array[columnOrders.get(COLUMN_MAX_SCORE)] = Float.toString(result.getMaxScore());
       } else {
-        throw new WsfPluginException("Unknown column: " + column);
+        throw new PluginModelException("Unknown column: " + column);
       }
     }
 

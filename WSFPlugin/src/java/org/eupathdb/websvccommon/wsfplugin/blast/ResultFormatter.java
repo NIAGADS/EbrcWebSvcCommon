@@ -3,8 +3,9 @@ package org.eupathdb.websvccommon.wsfplugin.blast;
 import java.io.File;
 
 import org.eupathdb.common.model.ProjectMapper;
+import org.gusdb.wsf.plugin.PluginModelException;
 import org.gusdb.wsf.plugin.PluginResponse;
-import org.gusdb.wsf.common.WsfException;
+import org.gusdb.wsf.plugin.PluginUserException;
 
 public interface ResultFormatter {
 
@@ -28,5 +29,5 @@ public interface ResultFormatter {
    */
   String formatResult(PluginResponse response, String[] orderedColumns,
       File outFile, String recordClass, String dbType)
-      throws WsfException;
+      throws PluginModelException, PluginUserException;
 }

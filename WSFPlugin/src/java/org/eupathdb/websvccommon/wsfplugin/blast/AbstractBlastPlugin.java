@@ -12,11 +12,11 @@ import org.eupathdb.common.model.InstanceManager;
 import org.eupathdb.common.model.ProjectMapper;
 import org.gusdb.wdk.model.WdkModel;
 import org.gusdb.wdk.model.WdkModelException;
-import org.gusdb.wsf.common.PluginRequest;
-import org.gusdb.wsf.common.WsfException;
 import org.gusdb.wsf.plugin.AbstractPlugin;
+import org.gusdb.wsf.plugin.PluginModelException;
+import org.gusdb.wsf.plugin.PluginRequest;
 import org.gusdb.wsf.plugin.PluginResponse;
-import org.gusdb.wsf.plugin.WsfPluginException;
+import org.gusdb.wsf.plugin.PluginUserException;
 
 public abstract class AbstractBlastPlugin extends AbstractPlugin {
   public static final int MAX_OUTFILE_SIZE = 90000000; // 90MB
@@ -57,7 +57,7 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
   }
 
   @Override
-  public void initialize() throws WsfPluginException {
+  public void initialize() throws PluginModelException {
     super.initialize();
 
     config = new BlastConfig(properties);
@@ -108,7 +108,7 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
    * @see org.gusdb.wsf.plugin.Plugin#execute(org.gusdb.wsf.plugin.WsfRequest)
    */
   @Override
-  public int execute(PluginRequest request, PluginResponse response) throws WsfException {
+  public int execute(PluginRequest request, PluginResponse response) throws PluginModelException, PluginUserException {
     logger.info("Invoking " + getClass().getSimpleName() + "...");
 
     // create temporary files for input sequence and output report
@@ -151,20 +151,20 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
     }
     catch (IOException | WdkModelException ex) {
       logger.error("IOException: " + ex);
-      throw new WsfPluginException(ex);
+      throw new PluginModelException(ex);
     }
     finally {
       cleanup();
     }
   }
 
-  private File getSequenceFile(Map<String, String> params) throws IOException, WsfPluginException {
+  private File getSequenceFile(Map<String, String> params) throws IOException, PluginUserException {
     // get sequence and save it into the sequence file
     String sequence = params.get(PARAM_SEQUENCE).trim();
 
     // check if the input contains multiple sequences
     if (sequence.indexOf('>', 1) > 0)
-      throw new WsfPluginException("Only one input sequence is allowed");
+      throw new PluginUserException("Only one input sequence is allowed");
 
     File seqFile = File.createTempFile(this.getClass().getSimpleName() + "_", ".in", config.getTempDir());
     PrintWriter out = new PrintWriter(new FileWriter(seqFile));

@@ -1,13 +1,13 @@
 package org.eupathdb.websvccommon.wsfplugin.blast;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.gusdb.wsf.plugin.WsfPluginException;
+import org.gusdb.wsf.plugin.PluginModelException;
+import org.gusdb.wsf.plugin.PluginUserException;
 
 public abstract class NcbiBlastCommandFormatter implements CommandFormatter {
 
@@ -17,7 +17,7 @@ public abstract class NcbiBlastCommandFormatter implements CommandFormatter {
   protected BlastConfig config;
 
   public abstract String getBlastDatabase(Map<String, String> params)
-      throws WsfPluginException;
+      throws PluginUserException, PluginModelException;
 
   @Override
   public void setConfig(BlastConfig config) {
@@ -26,7 +26,7 @@ public abstract class NcbiBlastCommandFormatter implements CommandFormatter {
 
   @Override
   public String[] formatCommand(Map<String, String> params, File seqFile,
-      File outFile) throws IOException, WsfPluginException {
+      File outFile) throws PluginUserException, PluginModelException {
     // now prepare the commandline
     List<String> cmds = new ArrayList<String>();
     cmds.add(config.getBlastPath() + "blastall");
