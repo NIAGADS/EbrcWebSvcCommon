@@ -4,14 +4,18 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 
 import org.apache.log4j.Logger;
 import org.eupathdb.common.model.view.BlastSummaryViewHandler;
 import org.eupathdb.websvccommon.wsfplugin.EuPathServiceException;
+import org.gusdb.fgputil.FormatUtil;
 import org.gusdb.wsf.plugin.PluginModelException;
 import org.gusdb.wsf.plugin.PluginResponse;
 import org.gusdb.wsf.plugin.PluginUserException;
@@ -22,6 +26,9 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
   private static final Logger logger = Logger.getLogger(NcbiBlastResultFormatter.class);
 
   private static final String DB_TYPE_GENOME = "Genome";
+
+  private static final String DB_LINES_START_GREP = "Database: ";
+  private static final String[] DB_LINES_END_GREPS = { "total letters", "Posted date" };
 
   @Override
   public String formatResult(PluginResponse response, String[] orderedColumns, File outFile,
@@ -44,21 +51,20 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
             inSummary = false;
           }
           else {
-            // get source id, and store the summary line for later process,
-            // since
-            // some of the info here might be truncated, and can only be
-            // processed
+            // get source id, and store the summary line for later process, since
+            // some of the info here might be truncated, and can only be processed
             // with the info from the correlated alignment section.
             String sourceId = getField(line, findSourceId(line));
             summaries.put(sourceId, lineTrimmed);
           }
         }
         else if (inAlignment) {
-          if (lineTrimmed.startsWith("Database:")) { // end of alignment section
+          if (lineTrimmed.startsWith(DB_LINES_START_GREP)) { // end of alignment section
             inAlignment = false;
             // process previous alignment
             processAlignment(response, orderedColumns, recordClass, dbType, summaries, alignment.toString());
-            content.append(line).append(newline);
+            // remove database full paths from result display
+            content.append(convertDatabaseLines(lineTrimmed, reader));
           }
           else {
             if (line.startsWith(">")) { // start of a new alignment
@@ -84,6 +90,9 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
             // add the line to the alignment
             alignment.append(line).append(newline);
           }
+          else if (lineTrimmed.startsWith(DB_LINES_START_GREP)) {
+            content.append(convertDatabaseLines(lineTrimmed, reader));
+          }
           else {
             content.append(line).append(newline);
           }
@@ -95,6 +104,31 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       throw new EuPathServiceException(ex);
     }
     return content.toString();
+  }
+
+  private String convertDatabaseLines(String firstDbLine, BufferedReader reader) throws IOException {
+    firstDbLine = firstDbLine.substring(DB_LINES_START_GREP.length()).trim();
+    StringBuilder unparsedDbs = new StringBuilder(firstDbLine);
+    String line;
+    boolean outOfDb = false;
+    while ((line = reader.readLine()) != null) {
+      for (String endGrep : DB_LINES_END_GREPS) {
+        if (line.contains(endGrep) || line.trim().isEmpty()) {
+          outOfDb = true;
+        }
+      }
+      if (outOfDb) break;
+      // appending DB lines but not last line read
+      unparsedDbs.append(line.trim());
+    }
+    List<String> filenames = new ArrayList<>();
+    String[] files = unparsedDbs.toString().split(";");
+    for (String file : files) {
+      filenames.add(Paths.get(file.trim()).getFileName().toString());
+    }
+    return new StringBuilder(DB_LINES_START_GREP).append(newline)
+        .append(FormatUtil.join(filenames.toArray(), ";" + newline)).append(newline)
+        .append(line).append(newline).toString();
   }
 
   private void processAlignment(PluginResponse response, String[] columns, String recordClass, String dbType,
