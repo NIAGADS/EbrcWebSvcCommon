@@ -162,6 +162,9 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
     // get sequence and save it into the sequence file
     String sequence = params.get(PARAM_SEQUENCE).trim();
 
+    // may need to filter out certain character sequences; additional sequences should be added as needed
+    sequence = sequence.replaceAll("&#65532;", "");
+
     // check if the input contains multiple sequences
     if (sequence.indexOf('>', 1) > 0)
       throw new PluginUserException("Only one input sequence is allowed");
