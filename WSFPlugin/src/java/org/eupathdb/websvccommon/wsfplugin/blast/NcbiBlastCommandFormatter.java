@@ -29,48 +29,46 @@ public abstract class NcbiBlastCommandFormatter implements CommandFormatter {
       File outFile) throws PluginUserException, PluginModelException {
     // now prepare the commandline
     List<String> cmds = new ArrayList<String>();
-    cmds.add(config.getBlastPath() + "blastall");
+    //cmds.add(config.getBlastPath() + "blastall");
 
     // get the algorithm
     String blastApp = params.remove(AbstractBlastPlugin.PARAM_ALGORITHM);
-    cmds.add("-p");
-    cmds.add(blastApp);
+    //cmds.add("-p");
+    //cmds.add(blastApp);
+
+		// Oct 2014: using new blast: blast+
+    cmds.add(config.getBlastPath() + blastApp);
 
     // get the blast database
     String blastDbs = getBlastDatabase(params);
-    cmds.add("-d");
+    cmds.add("-db");
     cmds.add(blastDbs);
 
     // add the input and output file
-    cmds.add("-i");
+    cmds.add("-query");
     cmds.add(seqFile.getAbsolutePath());
-    cmds.add("-o");
+    cmds.add("-out");
     cmds.add(outFile.getAbsolutePath());
 
  // set to use 4 cores
-    cmds.add("-a");
+    cmds.add("-num_threads");
     cmds.add("4");
 
     for (String paramName : params.keySet()) {
       if (paramName.equals(AbstractBlastPlugin.PARAM_EVALUE)) {
-        cmds.add("-e");
+        cmds.add("-evalue");
         cmds.add(params.get(paramName));
       } else if (paramName.equals(AbstractBlastPlugin.PARAM_MAX_SUMMARY)) {
         String alignments = params.get(paramName);
-        cmds.add("-b");
+        cmds.add("-num_alignments");
         cmds.add(alignments);
-        cmds.add("-v");
+        cmds.add("-num_descriptions");
         cmds.add(alignments);
-      } else if (paramName.equals(AbstractBlastPlugin.PARAM_FILTER)) {
-        cmds.add("-F");
-				// cmds.add(params.get(paramName).equals("yes") ? "m S" : "F");
-				if (params.get(paramName).equals("no")) 
-						{cmds.add("F");}
-				else {
-						if ( blastApp.equals("blastn") ) 
-								{ cmds.add("m D"); }
-						else 
-								{ cmds.add("m S");}
+      } else if (paramName.equals(AbstractBlastPlugin.PARAM_FILTER)) {   
+				if (params.get(paramName).equals("yes")) {                 //default is no filtering
+					if ( blastApp.equals("blastn") ) cmds.add("-dust");
+					else cmds.add("-seg");
+					cmds.add("yes"); 
 				}
       }
     }
