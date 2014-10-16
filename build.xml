@@ -64,7 +64,15 @@
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
 
   <target name="EuPathWebSvcCommon-WebInstallation" depends="EuPathSiteCommon-WebInstallation,
-                                                             EuPathWebSvcCommon-Installation">
+                                                             EuPathWebSvcCommon/WSFPlugin-WebInstallation">
+  </target>
+
+  <target name="EuPathWebSvcCommon/WSFPlugin-WebInstallation">
+
+    <ant target="defaultWebComponentInstall">
+      <property name="project" value="EuPathWebSvcCommon"/>
+      <property name="component" value="WSFPlugin"/>
+    </ant>
 
   </target>
 
