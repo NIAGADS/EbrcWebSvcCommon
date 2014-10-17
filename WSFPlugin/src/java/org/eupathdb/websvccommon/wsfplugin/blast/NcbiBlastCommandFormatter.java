@@ -39,6 +39,11 @@ public abstract class NcbiBlastCommandFormatter implements CommandFormatter {
 		// Oct 2014: using new blast: blast+
     cmds.add(config.getBlastPath() + blastApp);
 
+		if ( blastApp.equals("blastn") ) {
+			cmds.add("-task");
+			cmds.add(blastApp);
+		}
+
     // get the blast database
     String blastDbs = getBlastDatabase(params);
     cmds.add("-db");
