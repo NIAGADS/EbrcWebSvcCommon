@@ -152,7 +152,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       // get score and e-value from summary;
       String summary = summaries.get(sourceId);
       String evalue = getField(summary, findEvalue(summary));
-      int score = Double.valueOf(getField(summary, findScore(summary))).intValue();
+      float score = Float.valueOf(getField(summary, findScore(summary)));
 
       // insert id url into the summary
       summary = insertUrl(summary, findSourceId(summary), idUrl);
@@ -207,7 +207,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
   }
 
   private String[] formatRow(String[] columns, String projectId, String sourceId, String summary,
-      String alignment, String evalue, int score) throws EuPathServiceException {
+      String alignment, String evalue, float score) throws EuPathServiceException {
     String[] evalueParts = evalue.split("e");
     String evalueExp = (evalueParts.length == 2) ? evalueParts[1] : "0";
     String evalueMant = evalueParts[0];
@@ -232,7 +232,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
         row[i] = projectId;
       }
       else if (columns[i].equals(AbstractBlastPlugin.COLUMN_SCORE)) {
-        row[i] = Integer.toString(score);
+        row[i] = Float.toString(score);
       }
       else if (columns[i].equals(AbstractBlastPlugin.COLUMN_SUMMARY)) {
         row[i] = summary;
