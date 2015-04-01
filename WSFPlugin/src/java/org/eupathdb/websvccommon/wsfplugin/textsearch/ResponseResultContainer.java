@@ -3,15 +3,19 @@
  */
 package org.eupathdb.websvccommon.wsfplugin.textsearch;
 
+import static org.eupathdb.websvccommon.wsfplugin.textsearch.AbstractOracleTextSearchPlugin.COLUMN_DATASETS;
+import static org.eupathdb.websvccommon.wsfplugin.textsearch.AbstractOracleTextSearchPlugin.COLUMN_MAX_SCORE;
+import static org.eupathdb.websvccommon.wsfplugin.textsearch.AbstractOracleTextSearchPlugin.COLUMN_PROJECT_ID;
+import static org.eupathdb.websvccommon.wsfplugin.textsearch.AbstractOracleTextSearchPlugin.COLUMN_RECORD_ID;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.gusdb.wsf.plugin.PluginModelException;
 import org.gusdb.wsf.plugin.PluginResponse;
-import org.gusdb.wsf.plugin.WsfPluginException;
-
-import static org.eupathdb.websvccommon.wsfplugin.textsearch.AbstractOracleTextSearchPlugin.*;
+import org.gusdb.wsf.plugin.PluginUserException;
 
 /**
  * @author jerric
@@ -41,7 +45,7 @@ public class ResponseResultContainer implements ResultContainer {
    * (org.eupathdb.websvccommon.wsfplugin.textsearch.SearchResult)
    */
   @Override
-  public void addResult(SearchResult result) throws WsfPluginException {
+  public void addResult(SearchResult result) throws PluginModelException, PluginUserException {
     String sourceId = result.getSourceId();
 
     // convert the result to a String[] array
@@ -56,7 +60,7 @@ public class ResponseResultContainer implements ResultContainer {
       } else if (column.equals(COLUMN_MAX_SCORE)) {
         array[columnOrders.get(COLUMN_MAX_SCORE)] = Float.toString(result.getMaxScore());
       } else {
-        throw new WsfPluginException("Unknown column: " + column);
+        throw new PluginModelException("Unknown column: " + column);
       }
     }
 

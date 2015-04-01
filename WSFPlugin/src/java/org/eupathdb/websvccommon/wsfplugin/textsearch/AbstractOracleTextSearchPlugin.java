@@ -3,20 +3,17 @@
  */
 package org.eupathdb.websvccommon.wsfplugin.textsearch;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
-import org.eupathdb.websvccommon.wsfplugin.EuPathServiceException;
 import org.gusdb.fgputil.db.SqlUtils;
-import org.gusdb.wdk.model.WdkModelException;
-import org.gusdb.wdk.model.dbms.ConnectionContainer;
 import org.gusdb.wsf.plugin.AbstractPlugin;
+import org.gusdb.wsf.plugin.PluginModelException;
 import org.gusdb.wsf.plugin.PluginRequest;
-import org.gusdb.wsf.plugin.WsfPluginException;
+import org.gusdb.wsf.plugin.PluginUserException;
 
 /**
  * @author John I
@@ -47,8 +44,7 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
    */
   @Override
   public String[] getColumns() {
-    return new String[] { COLUMN_RECORD_ID, COLUMN_PROJECT_ID, COLUMN_DATASETS,
-        COLUMN_MAX_SCORE };
+    return new String[] { COLUMN_RECORD_ID, COLUMN_PROJECT_ID, COLUMN_DATASETS, COLUMN_MAX_SCORE };
   }
 
   /*
@@ -67,8 +63,7 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
    * @see org.gusdb.wsf.plugin.WsfPlugin#validateParameters(java.util.Map)
    */
   @Override
-  public void validateParameters(PluginRequest request)
-      throws WsfPluginException {
+  public void validateParameters(PluginRequest request) {
     // do nothing in this plugin
   }
 
@@ -89,16 +84,17 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
     double accumWeight = .1;
     String transformed;
 
-    String trimmed = queryExpression.trim().replaceAll("'", "").replaceAll(
-        "[-&|~,=;%_]", "\\\\$0");
+    String trimmed = queryExpression.trim().replaceAll("'", "").replaceAll("[-&|~,=;%_]", "\\\\$0");
 
     ArrayList<String> tokenized = tokenizer(trimmed);
     if (tokenized.size() > 1) {
-      transformed = "(" + join(tokenized, " NEAR ") + ") * " + nearWeight
-          + " OR (" + join(tokenized, " ACCUM ") + ") * " + accumWeight;
-    } else if (tokenized.size() == 1) {
+      transformed = "(" + join(tokenized, " NEAR ") + ") * " + nearWeight + " OR (" +
+          join(tokenized, " ACCUM ") + ") * " + accumWeight;
+    }
+    else if (tokenized.size() == 1) {
       transformed = tokenized.get(0);
-    } else {
+    }
+    else {
       transformed = wildcarded(trimmed);
     }
 
@@ -111,7 +107,8 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
     if (wildcarded.equals(queryExpression)) {
       // no wildcard
       return ("{" + queryExpression + "}");
-    } else {
+    }
+    else {
       return (wildcarded);
     }
 
@@ -125,11 +122,11 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
     for (String quoteChunk : input.split("\"")) {
       if (insideQuotes && quoteChunk.length() > 0) {
         tokenized.add(wildcarded(quoteChunk));
-      } else {
+      }
+      else {
         for (String spaceChunk : quoteChunk.split(" ")) {
-          if (spaceChunk.length() > 0
-              && !spaceChunk.toLowerCase().equals("and")
-              && !spaceChunk.toLowerCase().equals("or")) {
+          if (spaceChunk.length() > 0 && !spaceChunk.toLowerCase().equals("and") &&
+              !spaceChunk.toLowerCase().equals("or")) {
             tokenized.add(wildcarded(spaceChunk));
           }
         }
@@ -148,7 +145,8 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
     for (String part : parts) {
       if (notFirstChunk) {
         conjunction.append(delimiter);
-      } else
+      }
+      else
         notFirstChunk = true;
 
       conjunction.append(part);
@@ -178,12 +176,12 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
   // }
   // }
 
-  protected void textSearch(ResultContainer results, PreparedStatement query,
-			    String primaryKeyColumn, String sql, String name) throws WsfPluginException {
+  protected void textSearch(ResultContainer results, PreparedStatement query, String primaryKeyColumn,
+      String sql, String name) throws PluginModelException, PluginUserException {
     ResultSet rs = null;
     try {
-      logger.info("about to execute text-search query \"" + name
-		  + "\" (set org.gusdb logging to \"debug\" to see its text)");
+      logger.info("about to execute text-search query \"" + name +
+          "\" (set org.gusdb logging to \"debug\" to see its text)");
       query.setFetchSize(100);
       // rs = query.executeQuery();
       rs = SqlUtils.executePreparedQuery(query, sql, name);
@@ -192,7 +190,7 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
         String sourceId = rs.getString(primaryKeyColumn);
 
         if (results.hasResult(sourceId)) {
-          throw new WsfPluginException("duplicate sourceId " + sourceId);
+          throw new PluginModelException("duplicate sourceId " + sourceId);
         }
 
         SearchResult match = getSearchResults(rs, sourceId);
@@ -200,48 +198,39 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
       }
       logger.info("finished fetching rows");
       SqlUtils.closeResultSetOnly(rs);
-    } catch (SQLException ex) {
+    }
+    catch (SQLException ex) {
       logger.info("caught Exception " + ex.getMessage());
       ex.printStackTrace();
       String message;
       if (ex.getMessage().indexOf("DRG-51030") >= 0) {
         // DRG-51030: wildcard query expansion resulted in too many terms
         message = new String("Search term with wildcard (asterisk) characters "
-            + "matches too many keywords. Please include more non-wildcard "
-            + "characters.");
-      } else if (ex.getMessage().indexOf("ORA-01460") >= 0) {
+            + "matches too many keywords. Please include more non-wildcard " + "characters.");
+      }
+      else if (ex.getMessage().indexOf("ORA-01460") >= 0) {
         // ORA-01460: unimplemented or unreasonable conversion requested
         // it's unimplemented; it's unreasonable; it's outrageous, egregious,
         // preposterous!
-        message = new String(
-            "Search term is too long. Please try again with a shorter text term.");
-      } else {
+        message = new String("Search term is too long. Please try again with a shorter text term.");
+      }
+      else {
         message = ex.getMessage();
       }
-      throw new WsfPluginException(message, ex);
-    } catch (Exception ex) {
+      throw new PluginUserException(message, ex);
+    }
+    catch (Exception ex) {
       logger.info("caught Exception " + ex.getMessage());
       ex.printStackTrace();
-      throw new WsfPluginException(ex);
-    } finally {
+      throw new PluginModelException(ex);
+    }
+    finally {
       SqlUtils.closeQuietly(rs);
     }
   }
 
-  private SearchResult getSearchResults(ResultSet rs, String sourceId)
-      throws SQLException {
-    return new SearchResult(rs.getString("project_id"), sourceId,
-        rs.getFloat("max_score"), rs.getString("fields_matched"));
-  }
-
-  protected Connection getDbConnection(String containerKey, String connectionKey)
-      throws SQLException, EuPathServiceException, WdkModelException {
-    ConnectionContainer container = (ConnectionContainer) context.get(containerKey);
-    if (container == null)
-      throw new EuPathServiceException("The container cannot be found in the "
-          + "context with key: " + containerKey + ". Please check if the "
-          + "container is declared in the context.");
-
-    return container.getConnection(connectionKey);
+  private SearchResult getSearchResults(ResultSet rs, String sourceId) throws SQLException {
+    return new SearchResult(rs.getString("project_id"), sourceId, rs.getFloat("max_score"),
+        rs.getString("fields_matched"));
   }
 }

@@ -1,13 +1,13 @@
 package org.eupathdb.websvccommon.wsfplugin.blast;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.gusdb.wsf.plugin.WsfPluginException;
+import org.gusdb.wsf.plugin.PluginModelException;
+import org.gusdb.wsf.plugin.PluginUserException;
 
 public abstract class NcbiBlastCommandFormatter implements CommandFormatter {
 
@@ -17,7 +17,7 @@ public abstract class NcbiBlastCommandFormatter implements CommandFormatter {
   protected BlastConfig config;
 
   public abstract String getBlastDatabase(Map<String, String> params)
-      throws WsfPluginException;
+      throws PluginUserException, PluginModelException;
 
   @Override
   public void setConfig(BlastConfig config) {
@@ -26,51 +26,54 @@ public abstract class NcbiBlastCommandFormatter implements CommandFormatter {
 
   @Override
   public String[] formatCommand(Map<String, String> params, File seqFile,
-      File outFile) throws IOException, WsfPluginException {
+      File outFile) throws PluginUserException, PluginModelException {
     // now prepare the commandline
     List<String> cmds = new ArrayList<String>();
-    cmds.add(config.getBlastPath() + "blastall");
+    //cmds.add(config.getBlastPath() + "blastall");
 
     // get the algorithm
     String blastApp = params.remove(AbstractBlastPlugin.PARAM_ALGORITHM);
-    cmds.add("-p");
-    cmds.add(blastApp);
+    //cmds.add("-p");
+    //cmds.add(blastApp);
+
+		// Oct 2014: using new blast: blast+
+    cmds.add(config.getBlastPath() + blastApp);
+
+		if ( blastApp.equals("blastn") ) {
+			cmds.add("-task");
+			cmds.add(blastApp);
+		}
 
     // get the blast database
     String blastDbs = getBlastDatabase(params);
-    cmds.add("-d");
+    cmds.add("-db");
     cmds.add(blastDbs);
 
     // add the input and output file
-    cmds.add("-i");
+    cmds.add("-query");
     cmds.add(seqFile.getAbsolutePath());
-    cmds.add("-o");
+    cmds.add("-out");
     cmds.add(outFile.getAbsolutePath());
 
  // set to use 4 cores
-    cmds.add("-a");
+    cmds.add("-num_threads");
     cmds.add("4");
 
     for (String paramName : params.keySet()) {
       if (paramName.equals(AbstractBlastPlugin.PARAM_EVALUE)) {
-        cmds.add("-e");
+        cmds.add("-evalue");
         cmds.add(params.get(paramName));
       } else if (paramName.equals(AbstractBlastPlugin.PARAM_MAX_SUMMARY)) {
         String alignments = params.get(paramName);
-        cmds.add("-b");
+        cmds.add("-num_alignments");
         cmds.add(alignments);
-        cmds.add("-v");
+        cmds.add("-num_descriptions");
         cmds.add(alignments);
-      } else if (paramName.equals(AbstractBlastPlugin.PARAM_FILTER)) {
-        cmds.add("-F");
-				// cmds.add(params.get(paramName).equals("yes") ? "m S" : "F");
-				if (params.get(paramName).equals("no")) 
-						{cmds.add("F");}
-				else {
-						if ( blastApp.equals("blastn") ) 
-								{ cmds.add("m D"); }
-						else 
-								{ cmds.add("m S");}
+      } else if (paramName.equals(AbstractBlastPlugin.PARAM_FILTER)) {   
+				if (params.get(paramName).equals("yes")) {                 //default is no filtering
+					if ( blastApp.equals("blastn") ) cmds.add("-dust");
+					else cmds.add("-seg");
+					cmds.add("yes"); 
 				}
       }
     }
