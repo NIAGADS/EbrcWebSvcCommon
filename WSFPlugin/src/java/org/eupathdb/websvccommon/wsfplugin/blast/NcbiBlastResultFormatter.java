@@ -155,10 +155,10 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       int[] scoreLocation = findScore(summary);
       float score = Float.valueOf(getField(summary, scoreLocation));
 
+      // insert a link to the alignment section - need to do it before the id link.
+      summary = insertUrl(summary, scoreLocation, "#" + sourceId);
       // insert id url into the summary
       summary = insertUrl(summary, findSourceId(summary), idUrl);
-      // also insert a link to the alignment section
-      summary = insertUrl(summary, scoreLocation, "#" + sourceId);
 
       // insert the gbrowse link if the DB type is genome
       if (dbType != null && dbType.equals(DB_TYPE_GENOME))
