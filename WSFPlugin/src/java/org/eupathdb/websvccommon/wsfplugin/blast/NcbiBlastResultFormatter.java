@@ -147,13 +147,16 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       int[] sourceIdLocation = findSourceId(alignment);
       String sourceId = getField(defline, sourceIdLocation);
       String idUrl = getIdUrl(recordClass, projectId, sourceId);
-      alignment = insertUrl(alignment, sourceIdLocation, idUrl);
+      alignment = insertUrl(alignment, sourceIdLocation, idUrl, sourceId);
 
       // get score and e-value from summary;
       String summary = summaries.get(sourceId);
       String evalue = getField(summary, findEvalue(summary));
-      float score = Float.valueOf(getField(summary, findScore(summary)));
+      int[] scoreLocation = findScore(summary);
+      float score = Float.valueOf(getField(summary, scoreLocation));
 
+      // insert a link to the alignment section - need to do it before the id link.
+      summary = insertUrl(summary, scoreLocation, "#" + sourceId);
       // insert id url into the summary
       summary = insertUrl(summary, findSourceId(summary), idUrl);
 
