@@ -25,7 +25,7 @@ public class BlastConfig {
   private static final String DEFAULT_EXTRA_OPTIONS = "";
   private static final String DEFAULT_TIMEOUT = "300";
   private static final String DEFAULT_IDENTIFIER_REGEX = "^>*(?:[^\\|]*\\|)?(\\S+)";
-  private static final String DEFAULT_ORGANISM_REGEX = "\\|\\s*organism=([^_|\\s]+)";
+  private static final String DEFAULT_ORGANISM_REGEX = "\\|\\s*organism=([^|\\s]+)";
 
   private final Properties properties;
 
