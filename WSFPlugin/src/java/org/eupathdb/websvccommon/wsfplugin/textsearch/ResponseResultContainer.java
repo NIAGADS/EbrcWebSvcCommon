@@ -5,7 +5,6 @@ package org.eupathdb.websvccommon.wsfplugin.textsearch;
 
 import static org.eupathdb.websvccommon.wsfplugin.textsearch.AbstractOracleTextSearchPlugin.COLUMN_DATASETS;
 import static org.eupathdb.websvccommon.wsfplugin.textsearch.AbstractOracleTextSearchPlugin.COLUMN_MAX_SCORE;
-import static org.eupathdb.websvccommon.wsfplugin.textsearch.AbstractOracleTextSearchPlugin.COLUMN_PROJECT_ID;
 import static org.eupathdb.websvccommon.wsfplugin.textsearch.AbstractOracleTextSearchPlugin.COLUMN_RECORD_ID;
 
 import java.util.HashMap;
@@ -53,8 +52,6 @@ public class ResponseResultContainer implements ResultContainer {
     for (String column : columnOrders.keySet()) {
       if (column.equals(COLUMN_DATASETS)) {
         array[columnOrders.get(COLUMN_DATASETS)] = result.getFieldsMatched();
-      } else if (column.equals(COLUMN_PROJECT_ID)) {
-        array[columnOrders.get(COLUMN_PROJECT_ID)] = result.getProjectId();
       } else if (column.equals(COLUMN_RECORD_ID)) {
         array[columnOrders.get(COLUMN_RECORD_ID)] = result.getSourceId();
       } else if (column.equals(COLUMN_MAX_SCORE)) {

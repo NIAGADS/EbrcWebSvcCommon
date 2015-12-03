@@ -11,13 +11,11 @@ public class SearchResult implements Comparable <SearchResult> {
 
 
     private String sourceId;
-    private String projectId;
     private float maxScore; 
     private StringBuilder fieldsMatched; 
 
-    public SearchResult(String projectId, String sourceId, float maxScore, String fieldsMatched) {
+    public SearchResult(String sourceId, float maxScore, String fieldsMatched) {
 	this.sourceId = sourceId;
-	this.projectId = projectId;
 	this.maxScore = maxScore;
 	this.fieldsMatched = new StringBuilder(fieldsMatched);
     }
@@ -32,10 +30,6 @@ public class SearchResult implements Comparable <SearchResult> {
 
     public void setSourceId(String id) {
 	sourceId = id;
-    }
-
-    public String getProjectId() {
-	return projectId;
     }
 
     public String getFieldsMatched() {
