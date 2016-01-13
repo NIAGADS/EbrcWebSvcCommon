@@ -35,6 +35,9 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
   public static final String COLUMN_RECORD_ID = "RecordID";
   public static final String COLUMN_DATASETS = "Datasets";
   public static final String COLUMN_MAX_SCORE = "MaxScore";
+  public static final String COLUMN_GENE_SOURCE_ID = "gene_source_id";
+  public static final String COLUMN_MATCHED_RESULT = "matched_result";
+  public static final String COLUMN_PROJECT_ID = "ProjectId";
 
   /*
    * (non-Javadoc)
