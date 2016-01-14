@@ -19,6 +19,7 @@ public class BlastConfig {
   public static final String FIELD_TIMEOUT = "Timeout";
   public static final String FIELD_IDENTIFIER_REGEX = "IdentifierRegex";
   public static final String FIELD_ORGANISM_REGEX = "OrganismRegex";
+  public static final String FIELD_GENE_REGEX = "GeneRegex";
 
   // default values for the optional properties
   private static final String DEFAULT_TEMP_PATH = "/var/www/Common/tmp/blast";
@@ -26,6 +27,7 @@ public class BlastConfig {
   private static final String DEFAULT_TIMEOUT = "300";
   private static final String DEFAULT_IDENTIFIER_REGEX = "^>*(?:[^\\|]*\\|)?(\\S+)";
   private static final String DEFAULT_ORGANISM_REGEX = "\\|\\s*organism=([^|\\s]+)";
+  private static final String DEFAULT_GENE_REGEX = "\\|\\s*gene=([^|\\s]+)";
 
   private final Properties properties;
 
@@ -76,6 +78,10 @@ public class BlastConfig {
 
   public String getOrganismRegex() {
     return properties.getProperty(FIELD_ORGANISM_REGEX, DEFAULT_ORGANISM_REGEX);
+  }
+
+  public String getGeneRegex() {
+    return properties.getProperty(FIELD_GENE_REGEX, DEFAULT_GENE_REGEX);
   }
 
   public String getProperty(String name) {

@@ -143,6 +143,9 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       catch (NullPointerException e) {}
       String projectId = getProject(organism);
 
+      // get gene_source_id from defline
+      String geneSourceId = getField(defline, findGene(defline));
+
       // get the source id in the alignment, and insert a link there
       int[] sourceIdLocation = findSourceId(alignment);
       String sourceId = getField(defline, sourceIdLocation);
@@ -165,7 +168,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
         alignment = insertGbrowseLink(alignment, projectId, sourceId);
 
       // format and write the row
-      String[] row = formatRow(columns, projectId, sourceId, summary, alignment, evalue, score);
+      String[] row = formatRow(columns, projectId, sourceId, geneSourceId, summary, alignment, evalue, score);
       response.addRow(row);
     }
     catch (SQLException ex) {
@@ -209,7 +212,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
     return buffer.toString();
   }
 
-  private String[] formatRow(String[] columns, String projectId, String sourceId, String summary,
+  private String[] formatRow(String[] columns, String projectId, String sourceId, String geneSourceId, String summary,
       String alignment, String evalue, float score) throws EuPathServiceException {
     String[] evalueParts = evalue.split("e");
     String evalueExp = (evalueParts.length == 2) ? evalueParts[1] : "0";
@@ -239,6 +242,12 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       }
       else if (columns[i].equals(AbstractBlastPlugin.COLUMN_SUMMARY)) {
         row[i] = summary;
+      }
+      else if (columns[i].equals(AbstractBlastPlugin.COLUMN_MATCHED_RESULT)) {
+	  row[i] = new String("Y");
+      }
+      else if (columns[i].equals(AbstractBlastPlugin.COLUMN_GENE_SOURCE_ID)) {
+	  row[i] = geneSourceId;
       }
       else {
         throw new EuPathServiceException("Unsupported blast result column: " + columns[i]);

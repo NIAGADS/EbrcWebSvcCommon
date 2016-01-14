@@ -38,6 +38,8 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
   public static final String COLUMN_SCORE = "score";
   public static final String COLUMN_SUMMARY = "summary";
   public static final String COLUMN_ALIGNMENT = "alignment";
+  public static final String COLUMN_MATCHED_RESULT = "matched_result";
+  public static final String COLUMN_GENE_SOURCE_ID = "gene_source_id";
 
   // field definitions in the config file
   private static final String FILE_CONFIG = "blast-config.xml";
@@ -86,7 +88,7 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
   @Override
   public String[] getColumns() {
     return new String[] { COLUMN_IDENTIFIER, COLUMN_PROJECT_ID, COLUMN_EVALUE_MANT, COLUMN_EVALUE_EXP,
-        COLUMN_SCORE, COLUMN_SUMMARY, COLUMN_ALIGNMENT };
+			  COLUMN_SCORE, COLUMN_SUMMARY, COLUMN_ALIGNMENT, COLUMN_GENE_SOURCE_ID, COLUMN_MATCHED_RESULT };
   }
 
   /*

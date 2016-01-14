@@ -44,6 +44,10 @@ public abstract class AbstractResultFormatter implements ResultFormatter {
     return findField(defline, config.getOrganismRegex());
   }
 
+  protected int[] findGene(String defline) {
+    return findField(defline, config.getGeneRegex());
+  }
+
   protected int[] findScore(String summaryLine) {
     return findField(summaryLine, SCORE_REGEX);
   }
