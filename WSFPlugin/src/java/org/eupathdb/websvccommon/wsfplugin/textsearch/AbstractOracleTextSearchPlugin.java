@@ -180,9 +180,9 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
       String sql, String name) throws PluginModelException, PluginUserException {
     ResultSet rs = null;
     try {
+      query.setFetchSize(1000);
       logger.info("about to execute text-search query \"" + name +
           "\" (set org.gusdb logging to \"debug\" to see its text)");
-      query.setFetchSize(50000);
       // rs = query.executeQuery();
       rs = SqlUtils.executePreparedQuery(query, sql, name);
       logger.info("finshed execute");
