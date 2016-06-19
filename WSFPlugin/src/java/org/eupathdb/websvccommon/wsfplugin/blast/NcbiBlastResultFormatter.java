@@ -25,10 +25,10 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
   @SuppressWarnings("unused")
   private static final Logger logger = Logger.getLogger(NcbiBlastResultFormatter.class);
 
-  private static final String DB_TYPE_GENOME = "Genome";
+  protected static final String DB_TYPE_GENOME = "Genome";
 
-  private static final String DB_LINES_START_GREP = "Database: ";
-  private static final String[] DB_LINES_END_GREPS = { "total letters", "Posted date" };
+  protected static final String DB_LINES_START_GREP = "Database: ";
+  protected static final String[] DB_LINES_END_GREPS = { "total letters", "Posted date" };
 
   @Override
   public String formatResult(PluginResponse response, String[] orderedColumns, File outFile,
@@ -106,7 +106,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
     return content.toString();
   }
 
-  private String convertDatabaseLines(String firstDbLine, BufferedReader reader) throws IOException {
+  protected String convertDatabaseLines(String firstDbLine, BufferedReader reader) throws IOException {
     firstDbLine = firstDbLine.substring(DB_LINES_START_GREP.length()).trim();
     StringBuilder unparsedDbs = new StringBuilder(firstDbLine);
     String line;
@@ -131,7 +131,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
         .append(line).append(newline).toString();
   }
 
-  private void processAlignment(PluginResponse response, String[] columns, String recordClass, String dbType,
+  public void processAlignment(PluginResponse response, String[] columns, String recordClass, String dbType,
       Map<String, String> summaries, String alignment) throws PluginUserException, PluginModelException {
     try {
       // get the defline, and get organism from it
@@ -144,7 +144,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       String projectId = getProject(organism);
 
       // get gene_source_id from defline
-      String geneSourceId = getField(defline, findGene(defline));
+			// String geneSourceId = getField(defline, findGene(defline));
 
       // get the source id in the alignment, and insert a link there
       int[] sourceIdLocation = findSourceId(alignment);
@@ -168,7 +168,8 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
         alignment = insertGbrowseLink(alignment, projectId, sourceId);
 
       // format and write the row
-      String[] row = formatRow(columns, projectId, sourceId, geneSourceId, summary, alignment, evalue, score);
+			//  String[] row = formatRow(columns, projectId, sourceId, geneSourceId, summary, alignment, evalue, score);
+  String[] row = formatRow(columns, projectId, sourceId, summary, alignment, evalue, score);
       response.addRow(row);
     }
     catch (SQLException ex) {
@@ -176,7 +177,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
     }
   }
 
-  private String insertGbrowseLink(String alignment, String projectId, String sourceId) {
+  protected String insertGbrowseLink(String alignment, String projectId, String sourceId) {
     // logger.debug("insertGBrowseLink: alignment: ********\n" + alignment + "\n*******\n");
     StringBuilder buffer = new StringBuilder();
     String[] pieces = alignment.split("Strand=");
@@ -212,7 +213,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
     return buffer.toString();
   }
 
-  private String[] formatRow(String[] columns, String projectId, String sourceId, String geneSourceId, String summary,
+  private String[] formatRow(String[] columns, String projectId, String sourceId, String summary,
       String alignment, String evalue, float score) throws EuPathServiceException {
     String[] evalueParts = evalue.split("e");
     String evalueExp = (evalueParts.length == 2) ? evalueParts[1] : "0";
@@ -242,12 +243,6 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       }
       else if (columns[i].equals(AbstractBlastPlugin.COLUMN_SUMMARY)) {
         row[i] = summary;
-      }
-      else if (columns[i].equals(AbstractBlastPlugin.COLUMN_MATCHED_RESULT)) {
-	  row[i] = new String("Y");
-      }
-      else if (columns[i].equals(AbstractBlastPlugin.COLUMN_GENE_SOURCE_ID)) {
-	  row[i] = geneSourceId;
       }
       else {
         throw new EuPathServiceException("Unsupported blast result column: " + columns[i]);
