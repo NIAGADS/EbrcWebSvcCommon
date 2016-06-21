@@ -131,7 +131,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
         .append(line).append(newline).toString();
   }
 
-  public void processAlignment(PluginResponse response, String[] columns, String recordClass, String dbType,
+  protected void processAlignment(PluginResponse response, String[] columns, String recordClass, String dbType,
       Map<String, String> summaries, String alignment) throws PluginUserException, PluginModelException {
     try {
       // get the defline, and get organism from it
@@ -143,13 +143,10 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       catch (NullPointerException e) {}
       String projectId = getProject(organism);
 
-      // get gene_source_id from defline
-			// String geneSourceId = getField(defline, findGene(defline));
-
       // get the source id in the alignment, and insert a link there
       int[] sourceIdLocation = findSourceId(alignment);
       String sourceId = getField(defline, sourceIdLocation);
-      String idUrl = getIdUrl(recordClass, projectId, sourceId);
+      String idUrl = getIdUrl(recordClass, projectId, sourceId, defline);
       alignment = insertUrl(alignment, sourceIdLocation, idUrl, sourceId);
 
       // get score and e-value from summary;
@@ -168,8 +165,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
         alignment = insertGbrowseLink(alignment, projectId, sourceId);
 
       // format and write the row
-			//  String[] row = formatRow(columns, projectId, sourceId, geneSourceId, summary, alignment, evalue, score);
-  String[] row = formatRow(columns, projectId, sourceId, summary, alignment, evalue, score);
+      String[] row = formatRow(columns, projectId, sourceId, summary, alignment, evalue, score, defline);
       response.addRow(row);
     }
     catch (SQLException ex) {
@@ -214,7 +210,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
   }
 
   private String[] formatRow(String[] columns, String projectId, String sourceId, String summary,
-      String alignment, String evalue, float score) throws EuPathServiceException {
+      String alignment, String evalue, float score, String defline) throws EuPathServiceException {
     String[] evalueParts = evalue.split("e");
     String evalueExp = (evalueParts.length == 2) ? evalueParts[1] : "0";
     String evalueMant = evalueParts[0];
@@ -245,9 +241,22 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
         row[i] = summary;
       }
       else {
-        throw new EuPathServiceException("Unsupported blast result column: " + columns[i]);
+        if (!assignExtraColumns(i,row,columns,defline)) {
+          throw new EuPathServiceException("Unsupported blast result column: " + columns[i]);
+        }
       }
     }
     return row;
+  }
+/** subclasses will add custom classes
+ * 
+ * @param index
+ * @param row
+ * @param columns
+ * @param defline
+ * @return
+ */
+  protected boolean assignExtraColumns(int index, String[] row, String[] columns, String defline) {
+    return false;
   }
 }

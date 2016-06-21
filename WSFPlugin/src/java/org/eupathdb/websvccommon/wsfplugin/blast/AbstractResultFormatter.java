@@ -69,8 +69,17 @@ public abstract class AbstractResultFormatter implements ResultFormatter {
     }
   }
 
+  /**
+   * 
+   * @param recordClass
+   * @param projectId
+   * @param sourceId
+   * @param defline may be used in subclass
+   * @return
+   * @throws EuPathServiceException
+   */
   protected String getIdUrl(String recordClass, String projectId,
-      String sourceId) throws EuPathServiceException {
+      String sourceId, String defline) throws EuPathServiceException {
     try {
     String url = "showRecord.do?name=" + recordClass + "&project_id="
         + URLEncoder.encode(projectId, "UTF-8") + "&source_id="
