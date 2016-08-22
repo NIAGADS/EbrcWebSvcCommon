@@ -25,10 +25,10 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
   @SuppressWarnings("unused")
   private static final Logger logger = Logger.getLogger(NcbiBlastResultFormatter.class);
 
-  private static final String DB_TYPE_GENOME = "Genome";
+  protected static final String DB_TYPE_GENOME = "Genome";
 
-  private static final String DB_LINES_START_GREP = "Database: ";
-  private static final String[] DB_LINES_END_GREPS = { "total letters", "Posted date" };
+  protected static final String DB_LINES_START_GREP = "Database: ";
+  protected static final String[] DB_LINES_END_GREPS = { "total letters", "Posted date" };
 
   @Override
   public String formatResult(PluginResponse response, String[] orderedColumns, File outFile,
@@ -106,7 +106,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
     return content.toString();
   }
 
-  private String convertDatabaseLines(String firstDbLine, BufferedReader reader) throws IOException {
+  protected String convertDatabaseLines(String firstDbLine, BufferedReader reader) throws IOException {
     firstDbLine = firstDbLine.substring(DB_LINES_START_GREP.length()).trim();
     StringBuilder unparsedDbs = new StringBuilder(firstDbLine);
     String line;
@@ -131,7 +131,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
         .append(line).append(newline).toString();
   }
 
-  private void processAlignment(PluginResponse response, String[] columns, String recordClass, String dbType,
+  protected void processAlignment(PluginResponse response, String[] columns, String recordClass, String dbType,
       Map<String, String> summaries, String alignment) throws PluginUserException, PluginModelException {
     try {
       // get the defline, and get organism from it
@@ -146,7 +146,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       // get the source id in the alignment, and insert a link there
       int[] sourceIdLocation = findSourceId(alignment);
       String sourceId = getField(defline, sourceIdLocation);
-      String idUrl = getIdUrl(recordClass, projectId, sourceId);
+      String idUrl = getIdUrl(recordClass, projectId, sourceId, defline);
       alignment = insertUrl(alignment, sourceIdLocation, idUrl, sourceId);
 
       // get score and e-value from summary;
@@ -165,7 +165,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
         alignment = insertGbrowseLink(alignment, projectId, sourceId);
 
       // format and write the row
-      String[] row = formatRow(columns, projectId, sourceId, summary, alignment, evalue, score);
+      String[] row = formatRow(columns, projectId, sourceId, summary, alignment, evalue, score, defline);
       response.addRow(row);
     }
     catch (SQLException ex) {
@@ -173,7 +173,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
     }
   }
 
-  private String insertGbrowseLink(String alignment, String projectId, String sourceId) {
+  protected String insertGbrowseLink(String alignment, String projectId, String sourceId) {
     // logger.debug("insertGBrowseLink: alignment: ********\n" + alignment + "\n*******\n");
     StringBuilder buffer = new StringBuilder();
     String[] pieces = alignment.split("Strand=");
@@ -210,7 +210,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
   }
 
   private String[] formatRow(String[] columns, String projectId, String sourceId, String summary,
-      String alignment, String evalue, float score) throws EuPathServiceException {
+      String alignment, String evalue, float score, String defline) throws EuPathServiceException {
     String[] evalueParts = evalue.split("e");
     String evalueExp = (evalueParts.length == 2) ? evalueParts[1] : "0";
     String evalueMant = evalueParts[0];
@@ -241,9 +241,22 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
         row[i] = summary;
       }
       else {
-        throw new EuPathServiceException("Unsupported blast result column: " + columns[i]);
+        if (!assignExtraColumns(i,row,columns,defline)) {
+          throw new EuPathServiceException("Unsupported blast result column: " + columns[i]);
+        }
       }
     }
     return row;
+  }
+/** subclasses will add custom classes
+ * 
+ * @param index
+ * @param row
+ * @param columns
+ * @param defline
+ * @return
+ */
+  protected boolean assignExtraColumns(int index, String[] row, String[] columns, String defline) {
+    return false;
   }
 }

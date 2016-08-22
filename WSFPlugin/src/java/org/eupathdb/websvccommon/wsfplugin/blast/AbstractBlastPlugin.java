@@ -86,7 +86,7 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
   @Override
   public String[] getColumns() {
     return new String[] { COLUMN_IDENTIFIER, COLUMN_PROJECT_ID, COLUMN_EVALUE_MANT, COLUMN_EVALUE_EXP,
-        COLUMN_SCORE, COLUMN_SUMMARY, COLUMN_ALIGNMENT };
+			  COLUMN_SCORE, COLUMN_SUMMARY, COLUMN_ALIGNMENT };
   }
 
   /*

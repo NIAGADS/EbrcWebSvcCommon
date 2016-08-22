@@ -44,6 +44,10 @@ public abstract class AbstractResultFormatter implements ResultFormatter {
     return findField(defline, config.getOrganismRegex());
   }
 
+  protected int[] findGene(String defline) {
+    return findField(defline, config.getGeneRegex());
+  }
+
   protected int[] findScore(String summaryLine) {
     return findField(summaryLine, SCORE_REGEX);
   }
@@ -65,8 +69,17 @@ public abstract class AbstractResultFormatter implements ResultFormatter {
     }
   }
 
+  /**
+   * 
+   * @param recordClass
+   * @param projectId
+   * @param sourceId
+   * @param defline may be used in subclass
+   * @return
+   * @throws EuPathServiceException
+   */
   protected String getIdUrl(String recordClass, String projectId,
-      String sourceId) throws EuPathServiceException {
+      String sourceId, String defline) throws EuPathServiceException {
     try {
     String url = "showRecord.do?name=" + recordClass + "&project_id="
         + URLEncoder.encode(projectId, "UTF-8") + "&source_id="

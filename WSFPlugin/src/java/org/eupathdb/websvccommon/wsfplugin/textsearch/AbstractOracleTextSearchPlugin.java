@@ -33,9 +33,11 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
   public static final String PARAM_PROJECT_ID = "project_id";
 
   public static final String COLUMN_RECORD_ID = "RecordID";
-  public static final String COLUMN_PROJECT_ID = "ProjectId";
   public static final String COLUMN_DATASETS = "Datasets";
   public static final String COLUMN_MAX_SCORE = "MaxScore";
+  public static final String COLUMN_GENE_SOURCE_ID = "gene_source_id";
+  public static final String COLUMN_MATCHED_RESULT = "matched_result";
+  public static final String COLUMN_PROJECT_ID = "ProjectId";
 
   /*
    * (non-Javadoc)
@@ -44,7 +46,7 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
    */
   @Override
   public String[] getColumns() {
-    return new String[] { COLUMN_RECORD_ID, COLUMN_PROJECT_ID, COLUMN_DATASETS, COLUMN_MAX_SCORE };
+    return new String[] { COLUMN_RECORD_ID, COLUMN_DATASETS, COLUMN_MAX_SCORE };
   }
 
   /*
@@ -230,7 +232,7 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
   }
 
   private SearchResult getSearchResults(ResultSet rs, String sourceId) throws SQLException {
-    return new SearchResult(rs.getString("project_id"), sourceId, rs.getFloat("max_score"),
+    return new SearchResult(sourceId, rs.getFloat("max_score"),
         rs.getString("fields_matched"));
   }
 }
