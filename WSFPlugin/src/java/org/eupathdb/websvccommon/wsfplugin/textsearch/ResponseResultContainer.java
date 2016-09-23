@@ -62,7 +62,7 @@ public class ResponseResultContainer implements ResultContainer {
       } else if (column.equals(COLUMN_GENE_SOURCE_ID)) {
         array[columnOrders.get(COLUMN_GENE_SOURCE_ID)] = result.getGeneSourceId();
       } else if (column.equals(COLUMN_PROJECT_ID)) {
-        array[columnOrders.get(COLUMN_PROJECT_ID)] = result.getGeneSourceId();
+        array[columnOrders.get(COLUMN_PROJECT_ID)] = result.getProjectId();
       } else if (column.equals(COLUMN_MATCHED_RESULT)) {
 	  array[columnOrders.get(COLUMN_MATCHED_RESULT)] = new String("Y");
       } else {

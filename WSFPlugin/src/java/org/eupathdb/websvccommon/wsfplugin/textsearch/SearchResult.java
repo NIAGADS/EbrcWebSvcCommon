@@ -24,6 +24,10 @@ public class SearchResult implements Comparable <SearchResult> {
     public float getMaxScore() {
 	return maxScore;
     }
+    
+    public void setMaxScore(float maxScore) {
+      this.maxScore = maxScore;
+    }
 
     public String getSourceId() {
 	return sourceId;
@@ -36,13 +40,13 @@ public class SearchResult implements Comparable <SearchResult> {
     public String getProjectId() {
 	return projectId;
     }
+    
+    public String getGeneSourceId() {
+      return null;
+      }
 
     public void setProjectId(String id) {
 	projectId = id;
-    }
-
-    public String getGeneSourceId() {
-	return null;
     }
 
     public String getFieldsMatched() {

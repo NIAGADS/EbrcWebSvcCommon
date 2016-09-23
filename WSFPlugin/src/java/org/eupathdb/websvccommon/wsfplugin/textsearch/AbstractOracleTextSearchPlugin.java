@@ -189,13 +189,13 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
       rs = SqlUtils.executePreparedQuery(query, sql, name);
       logger.info("finshed execute");
       while (rs.next()) {
-        String sourceId = rs.getString(primaryKeyColumn);
+        String primaryId = rs.getString(primaryKeyColumn);
 
-        if (results.hasResult(sourceId)) {
-          throw new PluginModelException("duplicate sourceId " + sourceId);
+        if (results.hasResult(primaryId)) {
+          throw new PluginModelException("duplicate primaryId " + primaryId);
         }
 
-        SearchResult match = getSearchResults(rs, sourceId);
+        SearchResult match = getSearchResults(rs, primaryId);
         results.addResult(match);
       }
       logger.info("finished fetching rows");
@@ -231,8 +231,8 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
     }
   }
 
-  private SearchResult getSearchResults(ResultSet rs, String sourceId) throws SQLException {
-    return new SearchResult(sourceId, rs.getFloat("max_score"),
+  protected SearchResult getSearchResults(ResultSet rs, String primaryId) throws SQLException {
+    return new SearchResult(primaryId, rs.getFloat("max_score"),
         rs.getString("fields_matched"));
   }
 }
