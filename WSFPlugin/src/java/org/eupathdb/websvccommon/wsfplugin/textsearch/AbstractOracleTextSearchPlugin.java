@@ -29,6 +29,7 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
   public static final String PARAM_WDK_RECORD_TYPE = "wdk_record_type";
 
   public static final String PARAM_DETAIL_TABLE = "detail_table";
+  public static final String PARAM_PRIMARY_KEY_COLUMN = "primary_key_column";
   public static final String PARAM_PROJECT_ID = "project_id";
 
   public static final String COLUMN_RECORD_ID = "RecordID";
