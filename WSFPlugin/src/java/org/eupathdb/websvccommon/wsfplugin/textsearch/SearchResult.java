@@ -45,6 +45,10 @@ public class SearchResult implements Comparable <SearchResult> {
       return null;
       }
 
+    public String getPrimaryId() {
+      return sourceId;
+    }
+
     public void setProjectId(String id) {
 	projectId = id;
     }

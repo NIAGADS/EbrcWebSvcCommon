@@ -9,6 +9,7 @@ import static org.eupathdb.websvccommon.wsfplugin.textsearch.AbstractOracleTextS
 import static org.eupathdb.websvccommon.wsfplugin.textsearch.AbstractOracleTextSearchPlugin.COLUMN_PROJECT_ID;
 import static org.eupathdb.websvccommon.wsfplugin.textsearch.AbstractOracleTextSearchPlugin.COLUMN_GENE_SOURCE_ID;
 import static org.eupathdb.websvccommon.wsfplugin.textsearch.AbstractOracleTextSearchPlugin.COLUMN_MATCHED_RESULT;
+//import org.apache.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,15 +25,16 @@ import org.gusdb.wsf.plugin.PluginUserException;
  * 
  */
 public class ResponseResultContainer implements ResultContainer {
+  // private static final Logger logger = Logger.getLogger(ResponseResultContainer.class);
 
   private final PluginResponse response;
   private final Map<String, Integer> columnOrders;
-  private final Set<String> sourceIds;
+  private final Set<String> primaryIds;
 
   public ResponseResultContainer(PluginResponse response,
       String[] orderedColumns) {
     this.response = response;
-    this.sourceIds = new HashSet<>();
+    this.primaryIds = new HashSet<>();
     this.columnOrders = new HashMap<>(orderedColumns.length);
     for (int i = 0; i < orderedColumns.length; i++) {
       columnOrders.put(orderedColumns[i], i);
@@ -48,7 +50,7 @@ public class ResponseResultContainer implements ResultContainer {
    */
   @Override
   public void addResult(SearchResult result) throws PluginModelException, PluginUserException {
-    String sourceId = result.getSourceId();
+    String primaryId = result.getPrimaryId();
 
     // convert the result to a String[] array
     String[] array = new String[columnOrders.size()];
@@ -72,12 +74,12 @@ public class ResponseResultContainer implements ResultContainer {
 
     // add array to response
     response.addRow(array);
-    sourceIds.add(sourceId);
+    primaryIds.add(primaryId);
   }
 
   @Override
-  public boolean hasResult(String sourceId) {
-    return sourceIds.contains(sourceId);
+  public boolean hasResult(String primaryId) {
+    return primaryIds.contains(primaryId);
   }
 
 }
