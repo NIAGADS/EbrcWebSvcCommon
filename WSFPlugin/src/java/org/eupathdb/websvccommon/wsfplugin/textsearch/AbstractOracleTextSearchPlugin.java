@@ -231,7 +231,7 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
   }
 
   protected SearchResult getSearchResults(ResultSet rs, String primaryId) throws SQLException {
-    return new SearchResult(primaryId, rs.getFloat("max_score"),
+    return new SearchResult(primaryId, rs.getString("project_id"), rs.getFloat("max_score"),
         rs.getString("fields_matched"));
   }
 }

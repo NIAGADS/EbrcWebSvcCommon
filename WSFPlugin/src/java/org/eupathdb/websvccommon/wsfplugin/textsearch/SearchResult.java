@@ -15,9 +15,10 @@ public class SearchResult implements Comparable <SearchResult> {
     private float maxScore; 
     private StringBuilder fieldsMatched;
 
-    public SearchResult(String sourceId, float maxScore, String fieldsMatched) {
+    public SearchResult(String sourceId, String projectId, float maxScore, String fieldsMatched) {
 	this.sourceId = sourceId;
 	this.maxScore = maxScore;
+	this.projectId = projectId;
 	this.fieldsMatched = new StringBuilder(fieldsMatched);
     }
 
