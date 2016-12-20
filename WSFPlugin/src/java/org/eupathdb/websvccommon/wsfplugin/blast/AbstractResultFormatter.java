@@ -14,7 +14,9 @@ public abstract class AbstractResultFormatter implements ResultFormatter {
 
   protected static final Pattern SUBJECT_PATTERN = Pattern.compile("Sbjct\\s\\s+(\\d+)\\s+\\S+\\s+(\\d+)");
 
-  private static final String SCORE_REGEX = "(\\d+(\\.\\d+)?)\\s+\\S+$";
+	// private static final String SCORE_REGEX = "(\\d+(\\.\\d+)?)\\s+\\S+$";
+	// above regex was not handling scientific notation
+  private static final String SCORE_REGEX = "(\\S+)\\s+\\S+$";
   private static final String EVALUE_REGEX = "\\s+(\\S+)$";
 
   private static final Logger logger = Logger.getLogger(AbstractResultFormatter.class);

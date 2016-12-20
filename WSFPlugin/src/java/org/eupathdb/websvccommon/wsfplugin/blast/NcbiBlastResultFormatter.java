@@ -153,7 +153,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       String summary = summaries.get(sourceId);
       String evalue = getField(summary, findEvalue(summary));
       int[] scoreLocation = findScore(summary);
-      float score = Float.valueOf(getField(summary, scoreLocation));
+      float score = (float)Float.valueOf(getField(summary, scoreLocation));
 
       // insert a link to the alignment section - need to do it before the id link.
       summary = insertUrl(summary, scoreLocation, "#" + sourceId);
