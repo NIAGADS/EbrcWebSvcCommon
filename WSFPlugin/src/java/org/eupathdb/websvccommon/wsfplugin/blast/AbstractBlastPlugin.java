@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Map;
 
+
 import org.apache.log4j.Logger;
 import org.eupathdb.common.model.ProjectMapper;
 import org.gusdb.fgputil.runtime.InstanceManager;
@@ -166,7 +167,7 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
     sequence = sequence.replaceAll("&#65532;", "");
 
     // check if the input contains multiple sequences
-    if (sequence.indexOf('>', 1) > 0)
+    if (sequence.indexOf('>', 1) > -1)
       throw new PluginUserException("Only one input sequence is allowed");
 
     File seqFile = File.createTempFile(this.getClass().getSimpleName() + "_", ".in", config.getTempDir());
