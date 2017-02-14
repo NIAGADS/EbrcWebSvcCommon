@@ -69,12 +69,13 @@ public abstract class NcbiBlastCommandFormatter implements CommandFormatter {
         cmds.add(alignments);
         cmds.add("-num_descriptions");
         cmds.add(alignments);
-      } else if (paramName.equals(AbstractBlastPlugin.PARAM_FILTER)) {   
-				if (params.get(paramName).equals("yes")) {                 //default is no filtering
-					if ( blastApp.equals("blastn") ) cmds.add("-dust");
-					else cmds.add("-seg");
+      } else if (paramName.equals(AbstractBlastPlugin.PARAM_FILTER)) {
+				if ( blastApp.equals("blastn") ) cmds.add("-dust");
+				else cmds.add("-seg");
+				if (params.get(paramName).equals("yes")) {    //do not trust default
 					cmds.add("yes"); 
 				}
+				else 	cmds.add("no"); 
       }
     }
 
