@@ -7,7 +7,6 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Map;
 
-
 import org.apache.log4j.Logger;
 import org.eupathdb.common.model.ProjectMapper;
 import org.gusdb.fgputil.runtime.InstanceManager;
@@ -15,6 +14,7 @@ import org.gusdb.wdk.model.WdkModel;
 import org.gusdb.wdk.model.WdkModelException;
 import org.gusdb.wsf.plugin.AbstractPlugin;
 import org.gusdb.wsf.plugin.PluginModelException;
+import org.gusdb.wsf.plugin.PluginTimeoutException;
 import org.gusdb.wsf.plugin.PluginRequest;
 import org.gusdb.wsf.plugin.PluginResponse;
 import org.gusdb.wsf.plugin.PluginUserException;
@@ -135,8 +135,9 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
       // prepare results for failure scenario
       logger.info("Preparing the result... Output File Size is: " + outFile.length() + "\n\n");
       if (outFile.length() > MAX_OUTFILE_SIZE) {
-        logger.info("Will not prepare Result, too big BYE\n");
-        response.setMessage("\n\n***** Sorry we cannot handle this big result, please repeat your BLAST using fewer results (parameter V=B) or a smaller sequence\n");
+        logger.error("Will not prepare Result, too big BYE\n");
+        //response.setMessage("\n\n***** Sorry we cannot handle this big result, please repeat your BLAST using fewer results (parameter V=B) or a smaller sequence\n");
+				throw new PluginUserException("Sorry we cannot handle this big result (" + outFile.length()/1000000 + "MB).  We suggest you review the input parameters and try again (fewer results -parameter V=B, a smaller sequence, or set complexity filter to yes\n");
       }
       else {
         String recordClass = params.get(PARAM_RECORD_CLASS);
@@ -153,6 +154,10 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
     catch (IOException | WdkModelException ex) {
       logger.error("IOException: " + ex);
       throw new PluginModelException(ex);
+    }
+    catch (PluginTimeoutException ex) {
+      logger.error("PluginTimeoutException: " + ex);
+      throw new PluginUserException(ex);
     }
     finally {
       cleanup();
