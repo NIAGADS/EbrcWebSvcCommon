@@ -1,25 +1,25 @@
-<project name="EuPathWebSvcCommon" default="Installation" basedir=".">
+<project name="EbrcWebSvcCommon" default="Installation" basedir=".">
 
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooo  Dependencies  oooooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
 
-  <import file="${projectsDir}/EuPathSiteCommon/build.xml" />
+  <import file="${projectsDir}/EbrcWebsiteCommon/build.xml" />
 
     
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooo    Checkout    oooooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
-  <target name="EuPathWebSvcCommon-ChildCheckout">
-    <available file="${projectsDir}/EuPathSiteCommon" type="dir"  property="EuPathSiteCommon.present" />
-    <antcall target="EuPathSiteCommon-Checkout"/>
+  <target name="EbrcWebSvcCommon-ChildCheckout">
+    <available file="${projectsDir}/EbrcWebsiteCommon" type="dir"  property="EbrcWebsiteCommon.present" />
+    <antcall target="EbrcWebsiteCommon-Checkout"/>
   </target>
   
 
-  <target name="EuPathSiteCommon-Checkout" unless="EuPathSiteCommon.present">
+  <target name="EbrcWebsiteCommon-Checkout" unless="EbrcWebsiteCommon.present">
     <ant target="defaultProjectCheckout" inheritAll="false">
-      <property name="svnurl" value="https://www.cbil.upenn.edu/svn/apidb/EuPathSiteCommon"/>
-      <property name="project" value="EuPathSiteCommon"/>
+      <property name="svnurl" value="https://www.cbil.upenn.edu/svn/apidb/EbrcWebsiteCommon"/>
+      <property name="project" value="EbrcWebsiteCommon"/>
       <property name="version" value=""/>
     </ant>
   </target>
@@ -28,9 +28,9 @@
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooo    Update    oooooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
-  <target name="EuPathWebSvcCommon-ChildUpdate">
+  <target name="EbrcWebSvcCommon-ChildUpdate">
     <ant target="defaultProjectUpdate">
-      <property name="project" value="EuPathSiteCommon"/>
+      <property name="project" value="EbrcWebsiteCommon"/>
     </ant>
   </target>
 
@@ -38,11 +38,11 @@
   <!-- oooooooooooooooooooooooooo  Installation  oooooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
 
-  <target name="EuPathWebSvcCommon-Installation" depends="EuPathSiteCommon-Installation,
-                                                          EuPathWebSvcCommon/WSFPlugin-Installation">
+  <target name="EbrcWebSvcCommon-Installation" depends="EbrcWebsiteCommon-Installation,
+                                                          EbrcWebSvcCommon/WSFPlugin-Installation">
 
     <ant target="defaultProjectInstall">
-      <property name="project" value="EuPathWebSvcCommon"/>
+      <property name="project" value="EbrcWebSvcCommon"/>
     </ant>
 
   </target>
@@ -50,10 +50,10 @@
 
  <!-- ooooooooooooooooooooooo  Install Components  ooooooooooooooooooooooo -->
 
-  <target name="EuPathWebSvcCommon/WSFPlugin-Installation">
+  <target name="EbrcWebSvcCommon/WSFPlugin-Installation">
 
     <ant target="defaultComponentInstall">
-      <property name="project" value="EuPathWebSvcCommon"/>
+      <property name="project" value="EbrcWebSvcCommon"/>
       <property name="component" value="WSFPlugin"/>
     </ant>
     
@@ -63,14 +63,14 @@
   <!-- oooooooooooooooooooooooo  Web Installation  oooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
 
-  <target name="EuPathWebSvcCommon-WebInstallation" depends="EuPathSiteCommon-WebInstallation,
-                                                             EuPathWebSvcCommon/WSFPlugin-WebInstallation">
+  <target name="EbrcWebSvcCommon-WebInstallation" depends="EbrcWebsiteCommon-WebInstallation,
+                                                             EbrcWebSvcCommon/WSFPlugin-WebInstallation">
   </target>
 
-  <target name="EuPathWebSvcCommon/WSFPlugin-WebInstallation">
+  <target name="EbrcWebSvcCommon/WSFPlugin-WebInstallation">
 
     <ant target="defaultWebComponentInstall">
-      <property name="project" value="EuPathWebSvcCommon"/>
+      <property name="project" value="EbrcWebSvcCommon"/>
       <property name="component" value="WSFPlugin"/>
     </ant>
 
@@ -80,7 +80,7 @@
   <!-- oooooooooooooooooooooooooooo  Release  ooooooooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
 
-  <target name="EuPathWebSvcCommon-Release">
+  <target name="EbrcWebSvcCommon-Release">
     
     <ant target="defaultProjectRelease">
       <property name="cvsroot" value=":ext:cvs.sanger.ac.uk:/cvsroot/GUS"/>
@@ -91,7 +91,7 @@
   <!-- oooooooooooooooooooooooooo  Distributable  ooooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
 
-  <target name="EuPathWebSvcCommon-Distributable">
+  <target name="EbrcWebSvcCommon-Distributable">
 
     <copy todir="${targetDir}">
       <fileset dir="${projectsDir}" >
