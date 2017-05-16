@@ -1,7 +1,7 @@
 package org.eupathdb.websvccommon.wsfplugin.blast;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import static org.gusdb.fgputil.FormatUtil.urlEncodeUtf8;
+
 import java.sql.SQLException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -78,21 +78,14 @@ public abstract class AbstractResultFormatter implements ResultFormatter {
    * @param sourceId
    * @param defline may be used in subclass
    * @return
-   * @throws EuPathServiceException
+   * @throws EuPathServiceException 
    */
   protected String getIdUrl(String recordClass, String projectId,
       String sourceId, String defline) throws EuPathServiceException {
-    try {
-    String url = "showRecord.do?name=" + recordClass + "&project_id="
-        + URLEncoder.encode(projectId, "UTF-8") + "&source_id="
-        + URLEncoder.encode(sourceId, "UTF-8");
-    return url;
-    } catch (UnsupportedEncodingException ex) {
-      throw new EuPathServiceException(ex);
-    }
+    return "showRecord.do?name=" + recordClass + "&project_id="
+        + urlEncodeUtf8(projectId) + "&source_id="
+        + urlEncodeUtf8(sourceId);
   }
-  
-  
 
   /**
    * Insert a given url to the specified location, and use the html link tag to
