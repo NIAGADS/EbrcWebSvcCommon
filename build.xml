@@ -38,14 +38,22 @@
   <!-- oooooooooooooooooooooooooo  Installation  oooooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
 
-  <target name="EbrcWebSvcCommon-Installation" depends="EbrcWebsiteCommon-Installation,
-                                                          EbrcWebSvcCommon/WSFPlugin-Installation">
+  <target name="EbrcWebSvcCommon-Installation" depends="EbrcWebSvcCommon-MavenInstallation,
+  	                                                    EbrcWebsiteCommon-Installation,
+                                                        EbrcWebSvcCommon/WSFPlugin-Installation">
 
     <ant target="defaultProjectInstall">
       <property name="project" value="EbrcWebSvcCommon"/>
     </ant>
 
   </target>
+	
+	<target name="EbrcWebSvcCommon-MavenInstallation">
+	    <ant target="mavenBuildProject">
+	      <property name="project" value="EbrcWebSvcCommon"/>
+	    </ant>
+	    <property name="alreadyBuilt" value="true"/>
+	  </target>
 
 
  <!-- ooooooooooooooooooooooo  Install Components  ooooooooooooooooooooooo -->
