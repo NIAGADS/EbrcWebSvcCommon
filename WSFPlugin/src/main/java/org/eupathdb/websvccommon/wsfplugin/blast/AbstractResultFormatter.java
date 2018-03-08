@@ -9,6 +9,8 @@ import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
 import org.eupathdb.common.model.ProjectMapper;
 import org.eupathdb.websvccommon.wsfplugin.EuPathServiceException;
+import org.gusdb.wdk.model.WdkModelException;
+import org.gusdb.wsf.plugin.PluginModelException;
 
 public abstract class AbstractResultFormatter implements ResultFormatter {
 
@@ -127,7 +129,13 @@ public abstract class AbstractResultFormatter implements ResultFormatter {
     return projectMapper.getProjectByOrganism(organism);
   }
   
-  protected String getBaseUrl(String projectId) {
-    return projectMapper.getBaseUrl(projectId);
+  protected String getBaseUrl(String projectId) throws PluginModelException {
+    if (projectMapper.isSelf(projectId)) return "";
+    try {
+      return projectMapper.getBaseUrl(projectId);
+    }
+    catch (WdkModelException e) {
+      throw new PluginModelException(e);
+    }
   }
 }

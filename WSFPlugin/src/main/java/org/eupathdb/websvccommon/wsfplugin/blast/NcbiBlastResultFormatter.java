@@ -173,7 +173,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
     }
   }
 
-  protected String insertGbrowseLink(String alignment, String projectId, String sourceId) {
+  protected String insertGbrowseLink(String alignment, String projectId, String sourceId) throws PluginModelException {
     // logger.debug("insertGBrowseLink: alignment: ********\n" + alignment + "\n*******\n");
     StringBuilder buffer = new StringBuilder();
     String[] pieces = alignment.split("Strand=");
