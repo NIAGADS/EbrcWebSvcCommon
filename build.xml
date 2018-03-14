@@ -38,8 +38,8 @@
   <!-- oooooooooooooooooooooooooo  Installation  oooooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
 
-  <target name="EbrcWebSvcCommon-Installation" depends="EbrcWebSvcCommon-MavenInstallation,
-  	                                                    EbrcWebsiteCommon-Installation,
+  <target name="EbrcWebSvcCommon-Installation" depends="EbrcWebsiteCommon-Installation,
+                                                        EbrcWebSvcCommon-MavenInstallation,
                                                         EbrcWebSvcCommon/WSFPlugin-Installation">
 
     <ant target="defaultProjectInstall">
