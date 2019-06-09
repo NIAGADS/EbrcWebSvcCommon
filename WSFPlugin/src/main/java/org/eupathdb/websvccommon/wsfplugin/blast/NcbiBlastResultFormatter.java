@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 
 import org.apache.log4j.Logger;
-import org.eupathdb.common.model.view.BlastSummaryViewHandler;
 import org.eupathdb.websvccommon.wsfplugin.EuPathServiceException;
 import org.gusdb.fgputil.FormatUtil;
 import org.gusdb.wsf.plugin.PluginModelException;
@@ -24,6 +23,9 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
 
   @SuppressWarnings("unused")
   private static final Logger logger = Logger.getLogger(NcbiBlastResultFormatter.class);
+
+  public static final String MACRO_SUMMARY = "__WSF_BLAST_SUMMARY__";
+  public static final String MACRO_ALIGNMENT = "__WSF_BLAST_ALIGNMENT__";
 
   protected static final String DB_TYPE_GENOME = "Genome";
 
@@ -79,14 +81,14 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
           if (lineTrimmed.startsWith("Sequences producing significant alignments")) {
             // found the start of the summary section
             inSummary = true;
-            content.append(newline + BlastSummaryViewHandler.MACRO_SUMMARY + newline + newline);
+            content.append(newline + MACRO_SUMMARY + newline + newline);
             // read and skip an empty line
             reader.readLine();
           }
           else if (line.startsWith(">")) {
             // found the first alignment section
             inAlignment = true;
-            content.append(newline + BlastSummaryViewHandler.MACRO_ALIGNMENT + newline + newline);
+            content.append(newline + MACRO_ALIGNMENT + newline + newline);
             // add the line to the alignment
             alignment.append(line).append(newline);
           }
