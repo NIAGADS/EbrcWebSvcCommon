@@ -6,33 +6,6 @@
 
   <import file="${projectsDir}/EbrcWebsiteCommon/build.xml" />
 
-    
-  <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
-  <!-- oooooooooooooooooooooooooo    Checkout    oooooooooooooooooooooooooo -->
-  <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
-  <target name="EbrcWebSvcCommon-ChildCheckout">
-    <available file="${projectsDir}/EbrcWebsiteCommon" type="dir"  property="EbrcWebsiteCommon.present" />
-    <antcall target="EbrcWebsiteCommon-Checkout"/>
-  </target>
-  
-
-  <target name="EbrcWebsiteCommon-Checkout" unless="EbrcWebsiteCommon.present">
-    <ant target="defaultProjectCheckout" inheritAll="false">
-      <property name="svnurl" value="https://cbilsvn.pmacs.upenn.edu/svn/apidb/EbrcWebsiteCommon"/>
-      <property name="project" value="EbrcWebsiteCommon"/>
-      <property name="version" value=""/>
-    </ant>
-  </target>
-
-
-  <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
-  <!-- oooooooooooooooooooooooooo    Update    oooooooooooooooooooooooooo -->
-  <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
-  <target name="EbrcWebSvcCommon-ChildUpdate">
-    <ant target="defaultProjectUpdate">
-      <property name="project" value="EbrcWebsiteCommon"/>
-    </ant>
-  </target>
 
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooo  Installation  oooooooooooooooooooooooooo -->
@@ -43,29 +16,29 @@
                                                         EbrcWebSvcCommon/WSFPlugin-Installation">
 
     <ant target="defaultProjectInstall">
-      <property name="project" value="EbrcWebSvcCommon"/>
+      <property name="project" value="EbrcWebSvcCommon" />
     </ant>
 
   </target>
-	
-	<target name="EbrcWebSvcCommon-MavenInstallation">
-	    <ant target="mavenBuildProject">
-	      <property name="project" value="EbrcWebSvcCommon"/>
-	    </ant>
-	    <property name="alreadyBuilt" value="true"/>
-	  </target>
+
+  <target name="EbrcWebSvcCommon-MavenInstallation">
+    <ant target="mavenBuildProject">
+      <property name="project" value="EbrcWebSvcCommon" />
+    </ant>
+    <property name="alreadyBuilt" value="true" />
+  </target>
 
 
- <!-- ooooooooooooooooooooooo  Install Components  ooooooooooooooooooooooo -->
+  <!-- ooooooooooooooooooooooo  Install Components  ooooooooooooooooooooooo -->
 
   <target name="EbrcWebSvcCommon/WSFPlugin-Installation">
 
     <ant target="defaultComponentInstall">
-      <property name="project" value="EbrcWebSvcCommon"/>
-      <property name="component" value="WSFPlugin"/>
+      <property name="project" value="EbrcWebSvcCommon" />
+      <property name="component" value="WSFPlugin" />
     </ant>
-    
- </target>
+
+  </target>
 
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooo  Web Installation  oooooooooooooooooooooooo -->
@@ -78,8 +51,8 @@
   <target name="EbrcWebSvcCommon/WSFPlugin-WebInstallation">
 
     <ant target="defaultWebComponentInstall">
-      <property name="project" value="EbrcWebSvcCommon"/>
-      <property name="component" value="WSFPlugin"/>
+      <property name="project" value="EbrcWebSvcCommon" />
+      <property name="component" value="WSFPlugin" />
     </ant>
 
   </target>
@@ -89,11 +62,11 @@
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
 
   <target name="EbrcWebSvcCommon-Release">
-    
+
     <ant target="defaultProjectRelease">
-      <property name="cvsroot" value=":ext:cvs.sanger.ac.uk:/cvsroot/GUS"/>
+      <property name="cvsroot" value=":ext:cvs.sanger.ac.uk:/cvsroot/GUS" />
     </ant>
-  </target>  
+  </target>
 
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooo  Distributable  ooooooooooooooooooooooooo -->
@@ -102,11 +75,11 @@
   <target name="EbrcWebSvcCommon-Distributable">
 
     <copy todir="${targetDir}">
-      <fileset dir="${projectsDir}" >
+      <fileset dir="${projectsDir}">
         <exclude name="**/CVS/*" />
       </fileset>
-    </copy>  
-  </target>  
+    </copy>
+  </target>
 
 </project>
 
