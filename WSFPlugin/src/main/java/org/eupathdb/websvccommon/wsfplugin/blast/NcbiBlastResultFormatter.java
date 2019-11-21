@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 
 import org.apache.log4j.Logger;
-import org.eupathdb.common.model.view.BlastSummaryViewHandler;
 import org.eupathdb.websvccommon.wsfplugin.EuPathServiceException;
 import org.gusdb.fgputil.FormatUtil;
 import org.gusdb.wsf.plugin.PluginModelException;
@@ -24,6 +23,9 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
 
   @SuppressWarnings("unused")
   private static final Logger logger = Logger.getLogger(NcbiBlastResultFormatter.class);
+
+  public static final String MACRO_SUMMARY = "__WSF_BLAST_SUMMARY__";
+  public static final String MACRO_ALIGNMENT = "__WSF_BLAST_ALIGNMENT__";
 
   protected static final String DB_TYPE_GENOME = "Genome";
 
@@ -79,14 +81,14 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
           if (lineTrimmed.startsWith("Sequences producing significant alignments")) {
             // found the start of the summary section
             inSummary = true;
-            content.append(newline + BlastSummaryViewHandler.MACRO_SUMMARY + newline + newline);
+            content.append(newline + MACRO_SUMMARY + newline + newline);
             // read and skip an empty line
             reader.readLine();
           }
           else if (line.startsWith(">")) {
             // found the first alignment section
             inAlignment = true;
-            content.append(newline + BlastSummaryViewHandler.MACRO_ALIGNMENT + newline + newline);
+            content.append(newline + MACRO_ALIGNMENT + newline + newline);
             // add the line to the alignment
             alignment.append(line).append(newline);
           }
@@ -160,9 +162,9 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       // insert id url into the summary
       summary = insertUrl(summary, findSourceId(summary), idUrl);
 
-      // insert the gbrowse link if the DB type is genome
+      // insert the jbrowse link if the DB type is genome
       if (dbType != null && dbType.equals(DB_TYPE_GENOME))
-        alignment = insertGbrowseLink(alignment, projectId, sourceId);
+        alignment = insertJbrowseLink(alignment, projectId, sourceId);
 
       // format and write the row
       String[] row = formatRow(columns, projectId, sourceId, summary, alignment, evalue, score, defline);
@@ -173,8 +175,8 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
     }
   }
 
-  protected String insertGbrowseLink(String alignment, String projectId, String sourceId) throws PluginModelException {
-    // logger.debug("insertGBrowseLink: alignment: ********\n" + alignment + "\n*******\n");
+  protected String insertJbrowseLink(String alignment, String projectId, String sourceId) throws PluginModelException {
+    // logger.debug("insertJBrowseLink: alignment: ********\n" + alignment + "\n*******\n");
     StringBuilder buffer = new StringBuilder();
     String[] pieces = alignment.split("Strand=");
     for (String piece : pieces) {
@@ -197,8 +199,9 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       // check if any subject has been found
       if (min <= max) {
         String gb_url = getBaseUrl(projectId);
-        gb_url += "/cgi-bin/gbrowse/" + projectId.toLowerCase() + "/?name=" + sourceId + ":" + min + "-" +
-            max;
+        gb_url += "/a/jbrowse.jsp?data=/a/service/jbrowse/bySequenceId/" + sourceId +
+	    "/&loc=" + sourceId + ":" + min + "-" + max + "&tracks=gene";
+
         buffer.append("\n<a href=\"" + gb_url + "\"> <B><font color=\"red\">" +
             "Link to Genome Browser</font></B></a>,   Strand = ");
       }
