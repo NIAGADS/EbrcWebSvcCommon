@@ -162,9 +162,9 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       // insert id url into the summary
       summary = insertUrl(summary, findSourceId(summary), idUrl);
 
-      // insert the gbrowse link if the DB type is genome
+      // insert the jbrowse link if the DB type is genome
       if (dbType != null && dbType.equals(DB_TYPE_GENOME))
-        alignment = insertGbrowseLink(alignment, projectId, sourceId);
+        alignment = insertJbrowseLink(alignment, projectId, sourceId);
 
       // format and write the row
       String[] row = formatRow(columns, projectId, sourceId, summary, alignment, evalue, score, defline);
@@ -175,8 +175,8 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
     }
   }
 
-  protected String insertGbrowseLink(String alignment, String projectId, String sourceId) throws PluginModelException {
-    // logger.debug("insertGBrowseLink: alignment: ********\n" + alignment + "\n*******\n");
+  protected String insertJbrowseLink(String alignment, String projectId, String sourceId) throws PluginModelException {
+    // logger.debug("insertJBrowseLink: alignment: ********\n" + alignment + "\n*******\n");
     StringBuilder buffer = new StringBuilder();
     String[] pieces = alignment.split("Strand=");
     for (String piece : pieces) {
@@ -199,8 +199,9 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       // check if any subject has been found
       if (min <= max) {
         String gb_url = getBaseUrl(projectId);
-        gb_url += "/cgi-bin/gbrowse/" + projectId.toLowerCase() + "/?name=" + sourceId + ":" + min + "-" +
-            max;
+        gb_url += "/a/jbrowse.jsp?data=/a/service/jbrowse/bySequenceId/" + sourceId +
+	    "/&loc=" + sourceId + ":" + min + "-" + max + "&tracks=gene";
+
         buffer.append("\n<a href=\"" + gb_url + "\"> <B><font color=\"red\">" +
             "Link to Genome Browser</font></B></a>,   Strand = ");
       }
