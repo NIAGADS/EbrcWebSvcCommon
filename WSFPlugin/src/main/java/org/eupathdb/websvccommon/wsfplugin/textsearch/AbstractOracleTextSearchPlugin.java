@@ -1,12 +1,13 @@
-/**
- * KeywordSearchPlugin -- text search using Oracle Text
- */
 package org.eupathdb.websvccommon.wsfplugin.textsearch;
+
+import static org.gusdb.fgputil.FormatUtil.join;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.gusdb.fgputil.db.SqlUtils;
@@ -16,6 +17,8 @@ import org.gusdb.wsf.plugin.PluginRequest;
 import org.gusdb.wsf.plugin.PluginUserException;
 
 /**
+ * KeywordSearchPlugin -- text search using Oracle Text
+ * 
  * @author John I
  * @created Nov 16, 2008
  */
@@ -39,48 +42,34 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
   public static final String COLUMN_MATCHED_RESULT = "matched_result";
   public static final String COLUMN_PROJECT_ID = "ProjectId";
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.gusdb.wsf.WsfPlugin#getColumns()
-   */
   @Override
   public String[] getColumns() {
     return new String[] { COLUMN_RECORD_ID, COLUMN_DATASETS, COLUMN_MAX_SCORE };
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.gusdb.wsf.WsfPlugin#getRequiredParameters()
-   */
   @Override
   public String[] getRequiredParameterNames() {
     return new String[] { PARAM_TEXT_EXPRESSION, PARAM_DATASETS };
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.gusdb.wsf.plugin.WsfPlugin#validateParameters(java.util.Map)
-   */
   @Override
   public void validateParameters(PluginRequest request) {
     // do nothing in this plugin
   }
 
+  /**
+   * Transform the user's search string onto an expression suitable for passing
+   * to the Oracle Text CONTAINS() function: drop occurrences of AND and OR,
+   * escape anything else with curly braces (to avert errors from the database
+   * if any is on the long list of Oracle Text keywords), and (if it's a multi-
+   * word phrase) use NEAR and ACCUM to give a higher score when all terms are
+   * near each other; e.g. "calcium binding" becomes
+   *   "({calcium} NEAR {binding}) * 1.0 OR ({calcium} ACCUM {binding}) * 0.1"
+   * 
+   * @param queryExpression
+   * @return
+   */
   protected String transformQueryString(String queryExpression) {
-
-    // transform the user's search string onto an expression suitable for
-    // passing to the Oracle Text CONTAINS() function: drop occurrences of AND
-    // and
-    // OR, escape anything else with curly braces (to avert errors from the
-    // database if any is on the long list of Oracle Text keywords), and (if
-    // it's
-    // a multi-word phrase) use NEAR and ACCUM to give a higher score when all
-    // terms are near each other
-    // e.g. "calcium binding" becomes
-    // "({calcium} NEAR {binding}) * 1.0 OR ({calcium} ACCUM {binding}) * 0.1"
 
     double nearWeight = 1;
     double accumWeight = .1;
@@ -139,24 +128,6 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
     return tokenized;
   }
 
-  private static String join(ArrayList<String> parts, String delimiter) {
-    boolean notFirstChunk = false;
-
-    StringBuilder conjunction = new StringBuilder();
-
-    for (String part : parts) {
-      if (notFirstChunk) {
-        conjunction.append(delimiter);
-      }
-      else
-        notFirstChunk = true;
-
-      conjunction.append(part);
-    }
-
-    return conjunction.toString();
-  }
-
   protected void textSearch(ResultContainer results, PreparedStatement query, String primaryKeyColumn,
       String sql, String name) throws PluginModelException, PluginUserException {
     ResultSet rs = null;
@@ -212,5 +183,9 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
   protected SearchResult getSearchResults(ResultSet rs, String primaryId) throws SQLException {
     return new SearchResult(primaryId, rs.getString("project_id"), rs.getFloat("max_score"),
         rs.getString("fields_matched"));
+  }
+
+  protected static String toQuotedSqlList(List<String> strList) {
+    return strList.stream().map(org -> "'" + org.replace("'", "''") + "'").collect(Collectors.joining(","));
   }
 }
