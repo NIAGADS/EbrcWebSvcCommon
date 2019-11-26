@@ -6,8 +6,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.gusdb.fgputil.db.SqlUtils;
@@ -93,7 +91,6 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
   }
 
   private static String wildcarded(String queryExpression) {
-
     String wildcarded = queryExpression.replaceAll("\\*", "%");
     if (wildcarded.equals(queryExpression)) {
       // no wildcard
@@ -102,7 +99,6 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
     else {
       return (wildcarded);
     }
-
   }
 
   private static ArrayList<String> tokenizer(String input) {
@@ -183,9 +179,5 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
   protected SearchResult getSearchResults(ResultSet rs, String primaryId) throws SQLException {
     return new SearchResult(primaryId, rs.getString("project_id"), rs.getFloat("max_score"),
         rs.getString("fields_matched"));
-  }
-
-  protected static String toQuotedSqlList(List<String> strList) {
-    return strList.stream().map(org -> "'" + org.replace("'", "''") + "'").collect(Collectors.joining(","));
   }
 }
