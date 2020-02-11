@@ -15,7 +15,7 @@ import org.gusdb.wsf.plugin.PluginRequest;
 import org.gusdb.wsf.plugin.PluginUserException;
 
 /**
- * KeywordSearchPlugin -- text search using Oracle Text
+ * AbstractOracleTextSearchPlugin -- text search using Oracle Text
  * 
  * @author John I
  * @created Nov 16, 2008
