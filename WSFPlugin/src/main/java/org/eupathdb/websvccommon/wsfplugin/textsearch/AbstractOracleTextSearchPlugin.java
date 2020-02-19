@@ -41,7 +41,7 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
   public static final String COLUMN_PROJECT_ID = "ProjectId";
 
   @Override
-  public String[] getColumns() {
+  public String[] getColumns(PluginRequest request) {
     return new String[] { COLUMN_RECORD_ID, COLUMN_DATASETS, COLUMN_MAX_SCORE };
   }
 

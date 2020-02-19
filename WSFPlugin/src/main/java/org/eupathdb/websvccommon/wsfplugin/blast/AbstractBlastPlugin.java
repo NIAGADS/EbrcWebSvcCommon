@@ -68,24 +68,14 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
     // create project mapper
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.gusdb.wsf.plugin.Plugin#getRequiredParameterNames()
-   */
   @Override
   public String[] getRequiredParameterNames() {
     return new String[] { PARAM_DATA_TYPE, PARAM_ALGORITHM, PARAM_SEQUENCE, PARAM_RECORD_CLASS,
         PARAM_MAX_SUMMARY, PARAM_EVALUE };
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.gusdb.wsf.plugin.Plugin#getColumns()
-   */
   @Override
-  public String[] getColumns() {
+  public String[] getColumns(PluginRequest request) {
     return new String[] { COLUMN_IDENTIFIER, COLUMN_PROJECT_ID, COLUMN_EVALUE_MANT, COLUMN_EVALUE_EXP,
 			  COLUMN_SCORE, COLUMN_SUMMARY, COLUMN_ALIGNMENT };
   }
