@@ -131,6 +131,7 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
       }
       else {
         String recordClass = params.get(PARAM_RECORD_CLASS);
+       logger.debug("*********recordclass is:" + recordClass + "\n");
         String[] orderedColumns = request.getOrderedColumns();
         String message = resultFormatter.formatResult(response, orderedColumns, outFile, recordClass, dbType);
         logger.info("Result prepared BYE\n");

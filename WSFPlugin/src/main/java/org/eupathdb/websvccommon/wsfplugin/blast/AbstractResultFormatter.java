@@ -84,8 +84,7 @@ public abstract class AbstractResultFormatter implements ResultFormatter {
    */
   protected String getIdUrl(String recordClass, String projectId,
       String sourceId, String defline) throws EuPathServiceException {
-    return "showRecord.do?name=" + recordClass + "&project_id="
-        + urlEncodeUtf8(projectId) + "&source_id="
+    return "/app/record/" + recordClass + "/"
         + urlEncodeUtf8(sourceId);
   }
 
