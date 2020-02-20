@@ -148,7 +148,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       // get the source id in the alignment, and insert a link there
       int[] sourceIdLocation = findSourceId(alignment);
       String sourceId = getField(defline, sourceIdLocation);
-      String idUrl = getIdUrl(recordClass, projectId, sourceId, defline);
+      String idUrl = getIdUrl(getWdkModel(projectId).getRecordClassByFullName(recordClass).get(), projectId, sourceId, defline);
       alignment = insertUrl(alignment, sourceIdLocation, idUrl, sourceId);
 
       // get score and e-value from summary;

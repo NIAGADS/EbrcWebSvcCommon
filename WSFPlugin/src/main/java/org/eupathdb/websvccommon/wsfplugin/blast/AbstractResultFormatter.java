@@ -6,6 +6,10 @@ import java.sql.SQLException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.gusdb.wdk.model.record.RecordClass;
+import org.gusdb.fgputil.runtime.GusHome;
+import org.gusdb.fgputil.runtime.InstanceManager;
+import org.gusdb.wdk.model.WdkModel;
 import org.apache.log4j.Logger;
 import org.eupathdb.common.model.ProjectMapper;
 import org.eupathdb.websvccommon.wsfplugin.EuPathServiceException;
@@ -73,6 +77,13 @@ public abstract class AbstractResultFormatter implements ResultFormatter {
     }
   }
 
+
+  protected static WdkModel getWdkModel(String projectId) {
+    return InstanceManager.getInstance(WdkModel.class, GusHome.getGusHome(), projectId);
+  }
+  protected static String getWebappBaseUrl(WdkModel wdkmodel) {
+    return wdkmodel.getProperties().get("WEBAPP_BASE_URL");
+  }
   /**
    * 
    * @param recordClass
@@ -82,9 +93,9 @@ public abstract class AbstractResultFormatter implements ResultFormatter {
    * @return
    * @throws EuPathServiceException
    */
-  protected String getIdUrl(String recordClass, String projectId,
+  protected String getIdUrl(RecordClass recordClass, String projectId,
       String sourceId, String defline) throws EuPathServiceException {
-    return "/app/record/" + recordClass + "/"
+    return getWebappBaseUrl(recordClass.getWdkModel()) +"/record/" + recordClass.getUrlSegment() + "/"
         + urlEncodeUtf8(sourceId);
   }
 
