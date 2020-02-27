@@ -198,11 +198,13 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       }
       // check if any subject has been found
       if (min <= max) {
-        String gb_url = getBaseUrl(projectId);
-        gb_url += "/a/jbrowse.jsp?data=/a/service/jbrowse/bySequenceId/" + sourceId +
-	    "/&loc=" + sourceId + ":" + min + "-" + max + "&tracks=gene";
+        Map<String, String> props = getWdkModel(projectId).getProperties();
+        String jbrowseUrl = props.get("JBROWSE_WEBPAGE_URL");
+        String jbrowseServiceUrl = props.get("JBROWSE_SERVICE_URL");
+        jbrowseUrl += "?data=" + jbrowseServiceUrl + "/bySequenceId/" + sourceId +
+          "/&loc=" + sourceId + ":" + min + "-" + max + "&tracks=gene";
 
-        buffer.append("\n<a href=\"" + gb_url + "\"> <B><font color=\"red\">" +
+        buffer.append("\n<a href=\"" + jbrowseUrl + "\"> <B><font color=\"red\">" +
             "Link to Genome Browser</font></B></a>,   Strand = ");
       }
       else if (buffer.length() > 0)
