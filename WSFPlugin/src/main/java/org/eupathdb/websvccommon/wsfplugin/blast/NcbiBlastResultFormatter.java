@@ -175,7 +175,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
     }
   }
 
-  protected String insertJbrowseLink(String alignment, String projectId, String sourceId) throws PluginModelException {
+  protected String insertJbrowseLink(String alignment, String projectId, String sourceId) {
     // logger.debug("insertJBrowseLink: alignment: ********\n" + alignment + "\n*******\n");
     StringBuilder buffer = new StringBuilder();
     String[] pieces = alignment.split("Strand=");
