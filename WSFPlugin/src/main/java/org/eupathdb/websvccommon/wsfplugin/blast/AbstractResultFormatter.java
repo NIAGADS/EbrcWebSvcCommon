@@ -2,18 +2,17 @@ package org.eupathdb.websvccommon.wsfplugin.blast;
 
 import static org.gusdb.fgputil.FormatUtil.urlEncodeUtf8;
 
-import java.sql.SQLException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.gusdb.wdk.model.record.RecordClass;
-import org.gusdb.fgputil.runtime.GusHome;
-import org.gusdb.fgputil.runtime.InstanceManager;
-import org.gusdb.wdk.model.WdkModel;
 import org.apache.log4j.Logger;
 import org.eupathdb.common.model.ProjectMapper;
 import org.eupathdb.websvccommon.wsfplugin.EuPathServiceException;
+import org.gusdb.fgputil.runtime.GusHome;
+import org.gusdb.fgputil.runtime.InstanceManager;
+import org.gusdb.wdk.model.WdkModel;
 import org.gusdb.wdk.model.WdkModelException;
+import org.gusdb.wdk.model.record.RecordClass;
 import org.gusdb.wsf.plugin.PluginModelException;
 
 public abstract class AbstractResultFormatter implements ResultFormatter {
@@ -134,11 +133,11 @@ public abstract class AbstractResultFormatter implements ResultFormatter {
     buffer.append("</a>").append(content.substring(location[1]));
     return buffer.toString();
   }
-  
-  protected String getProject(String organism) throws SQLException {
+
+  protected String getProject(String organism) throws WdkModelException {
     return projectMapper.getProjectByOrganism(organism);
   }
-  
+
   protected String getBaseUrl(String projectId) throws PluginModelException {
     if (projectMapper.isSelf(projectId)) return "";
     try {

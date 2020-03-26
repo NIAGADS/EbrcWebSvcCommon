@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -15,6 +14,7 @@ import java.util.regex.Matcher;
 import org.apache.log4j.Logger;
 import org.eupathdb.websvccommon.wsfplugin.EuPathServiceException;
 import org.gusdb.fgputil.FormatUtil;
+import org.gusdb.wdk.model.WdkModelException;
 import org.gusdb.wsf.plugin.PluginModelException;
 import org.gusdb.wsf.plugin.PluginResponse;
 import org.gusdb.wsf.plugin.PluginUserException;
@@ -170,7 +170,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       String[] row = formatRow(columns, projectId, sourceId, summary, alignment, evalue, score, defline);
       response.addRow(row);
     }
-    catch (SQLException ex) {
+    catch (WdkModelException ex) {
       throw new EuPathServiceException(ex);
     }
   }
