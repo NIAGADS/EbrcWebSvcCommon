@@ -188,6 +188,7 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
   private void cleanup() {
     long todayLong = new Date().getTime();
     File tempDir = config.getTempDir();
+
     // remove files older than a week (500000000)
     for (File tempFile : tempDir.listFiles()) {
       if (tempFile.isFile() && tempFile.canWrite() && (todayLong - (tempFile.lastModified())) > 500000000) {
