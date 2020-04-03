@@ -193,7 +193,7 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
     for (File tempFile : tempDir.listFiles()) {
       if (tempFile.isFile() && tempFile.canWrite() && (todayLong - (tempFile.lastModified())) > 500000000) {
         logger.info("Temp file to be deleted: " + tempFile.getAbsolutePath() + "\n");
-        tempFile.delete();
+	//        tempFile.delete();
       }
     }
   }

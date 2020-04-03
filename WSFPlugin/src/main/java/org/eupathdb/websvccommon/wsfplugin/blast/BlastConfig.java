@@ -25,7 +25,7 @@ public class BlastConfig {
   private static final String DEFAULT_TEMP_PATH = "/var/www/Common/tmp/blast";
   private static final String DEFAULT_EXTRA_OPTIONS = "";
   private static final String DEFAULT_TIMEOUT = "300";
-  private static final String DEFAULT_IDENTIFIER_REGEX = "^>*(?:[^\\|]*\\|)?(\\S+)";
+  private static final String DEFAULT_IDENTIFIER_REGEX = "^>*\\s*\\t*\\s*(\\S{3,4}\\|\\S+)";
   private static final String DEFAULT_ORGANISM_REGEX = "\\|\\s*organism=([^|\\s]+)";
   private static final String DEFAULT_GENE_REGEX = "\\|\\s*gene=([^|\\s]+)";
 
