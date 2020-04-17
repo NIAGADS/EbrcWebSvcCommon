@@ -14,6 +14,7 @@ import java.util.regex.Matcher;
 import org.apache.log4j.Logger;
 import org.eupathdb.websvccommon.wsfplugin.EuPathServiceException;
 import org.gusdb.fgputil.FormatUtil;
+import org.gusdb.wdk.model.WdkModel;
 import org.gusdb.wdk.model.WdkModelException;
 import org.gusdb.wsf.plugin.PluginModelException;
 import org.gusdb.wsf.plugin.PluginResponse;
@@ -34,7 +35,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
 
   @Override
   public String formatResult(PluginResponse response, String[] orderedColumns, File outFile,
-      String recordClass, String dbType) throws PluginUserException, PluginModelException {
+      String recordClass, String dbType, WdkModel wdkModel) throws PluginUserException, PluginModelException {
 
     // read and parse the output
     StringBuilder content = new StringBuilder();
@@ -64,14 +65,14 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
           if (lineTrimmed.startsWith(DB_LINES_START_GREP)) { // end of alignment section
             inAlignment = false;
             // process previous alignment
-            processAlignment(response, orderedColumns, recordClass, dbType, summaries, alignment.toString());
+            processAlignment(response, orderedColumns, recordClass, dbType, summaries, alignment.toString(), wdkModel);
             // remove database full paths from result display
             content.append(convertDatabaseLines(lineTrimmed, reader));
           }
           else {
             if (line.startsWith(">")) { // start of a new alignment
               // process previous alignment
-              processAlignment(response, orderedColumns, recordClass, dbType, summaries, alignment.toString());
+              processAlignment(response, orderedColumns, recordClass, dbType, summaries, alignment.toString(), wdkModel);
               alignment = new StringBuilder();
             }
             alignment.append(line).append(newline);
@@ -134,7 +135,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
   }
 
   protected void processAlignment(PluginResponse response, String[] columns, String recordClass, String dbType,
-      Map<String, String> summaries, String alignment) throws PluginUserException, PluginModelException {
+      Map<String, String> summaries, String alignment, WdkModel model) throws PluginUserException, PluginModelException {
     try {
       // get the defline, and get organism from it
       String defline = alignment.substring(0, alignment.indexOf("Length="));
@@ -148,7 +149,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       // get the source id in the alignment, and insert a link there
       int[] sourceIdLocation = findSourceId(alignment);
       String sourceId = getField(defline, sourceIdLocation);
-      String idUrl = getIdUrl(getWdkModel(projectId).getRecordClassByFullName(recordClass).get(), projectId, sourceId, defline);
+      String idUrl = getIdUrl(model.getRecordClassByFullName(recordClass).get(), projectId, sourceId, defline);
       alignment = insertUrl(alignment, sourceIdLocation, idUrl, sourceId);
 
       // get score and e-value from summary;
