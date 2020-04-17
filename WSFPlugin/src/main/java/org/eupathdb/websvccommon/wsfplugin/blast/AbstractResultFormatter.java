@@ -76,13 +76,14 @@ public abstract class AbstractResultFormatter implements ResultFormatter {
     }
   }
 
-
   protected static WdkModel getWdkModel(String projectId) {
     return InstanceManager.getInstance(WdkModel.class, GusHome.getGusHome(), projectId);
   }
+
   protected static String getWebappBaseUrl(WdkModel wdkmodel) {
     return wdkmodel.getProperties().get("WEBAPP_BASE_URL");
   }
+
   /**
    * 
    * @param recordClass
@@ -91,11 +92,17 @@ public abstract class AbstractResultFormatter implements ResultFormatter {
    * @param defline may be used in subclass
    * @return
    * @throws EuPathServiceException
+   * @throws  
    */
   protected String getIdUrl(RecordClass recordClass, String projectId,
       String sourceId, String defline) throws EuPathServiceException {
-    return getWebappBaseUrl(recordClass.getWdkModel()) +"/record/" + recordClass.getUrlSegment() + "/"
-        + urlEncodeUtf8(sourceId);
+    try {
+      return ProjectMapper.getMapper(recordClass.getWdkModel())
+          .getRecordUrl(recordClass.getFullName(), projectId, sourceId);
+    }
+    catch (WdkModelException e) {
+      throw new EuPathServiceException("Unable to format result", e);
+    }
   }
 
   /**

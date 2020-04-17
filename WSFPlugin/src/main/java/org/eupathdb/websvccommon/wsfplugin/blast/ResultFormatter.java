@@ -3,6 +3,7 @@ package org.eupathdb.websvccommon.wsfplugin.blast;
 import java.io.File;
 
 import org.eupathdb.common.model.ProjectMapper;
+import org.gusdb.wdk.model.WdkModel;
 import org.gusdb.wsf.plugin.PluginModelException;
 import org.gusdb.wsf.plugin.PluginResponse;
 import org.gusdb.wsf.plugin.PluginUserException;
@@ -28,6 +29,6 @@ public interface ResultFormatter {
    * @throws WsfException 
    */
   String formatResult(PluginResponse response, String[] orderedColumns,
-      File outFile, String recordClass, String dbType)
+      File outFile, String recordClass, String dbType, WdkModel wdkModel)
       throws PluginModelException, PluginUserException;
 }
