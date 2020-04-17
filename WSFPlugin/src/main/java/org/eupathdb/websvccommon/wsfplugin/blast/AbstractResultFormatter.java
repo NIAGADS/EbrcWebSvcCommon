@@ -1,7 +1,5 @@
 package org.eupathdb.websvccommon.wsfplugin.blast;
 
-import static org.gusdb.fgputil.FormatUtil.urlEncodeUtf8;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
