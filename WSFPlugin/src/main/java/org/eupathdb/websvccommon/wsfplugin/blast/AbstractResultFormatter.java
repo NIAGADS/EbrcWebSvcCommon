@@ -97,11 +97,24 @@ public abstract class AbstractResultFormatter implements ResultFormatter {
   protected String getIdUrl(RecordClass recordClass, String projectId,
       String sourceId, String defline) throws EuPathServiceException {
     try {
-      return ProjectMapper.getMapper(recordClass.getWdkModel())
-          .getRecordUrl(recordClass.getFullName(), projectId, sourceId);
+      return getIdUrl(recordClass.getWdkModel(), recordClass.getFullName(), projectId, sourceId);
     }
     catch (WdkModelException e) {
       throw new EuPathServiceException("Unable to format result", e);
+    }
+  }
+
+  protected static String getIdUrl(WdkModel wdkModel, String recordClassFullName, String projectId, String sourceId) throws WdkModelException {
+    if (wdkModel.getProjectId().equals("EuPathDB")) {
+      return ProjectMapper.getMapper(wdkModel)
+          .getRecordUrl(recordClassFullName, projectId, sourceId);
+    }
+    else {
+      String recordClassUrlSegment = wdkModel.getRecordClassByFullName(recordClassFullName).get().getUrlSegment();
+      return getWebappBaseUrl(wdkModel) +
+          "/record" +
+          "/" + urlEncodeUtf8(recordClassUrlSegment) +
+          "/" + urlEncodeUtf8(sourceId);
     }
   }
 
