@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 
 import org.apache.log4j.Logger;
+import org.eupathdb.common.model.ProjectMapper;
 import org.eupathdb.websvccommon.wsfplugin.EuPathServiceException;
 import org.gusdb.fgputil.FormatUtil;
 import org.gusdb.wdk.model.WdkModel;
@@ -165,7 +166,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
 
       // insert the jbrowse link if the DB type is genome
       if (dbType != null && dbType.equals(DB_TYPE_GENOME))
-        alignment = insertJbrowseLink(alignment, projectId, sourceId);
+        alignment = insertJbrowseLink(model, alignment, projectId, sourceId);
 
       // format and write the row
       String[] row = formatRow(columns, projectId, sourceId, summary, alignment, evalue, score, defline);
@@ -176,13 +177,13 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
     }
   }
 
-  protected String insertJbrowseLink(String alignment, String projectId, String sourceId) {
+  private String insertJbrowseLink(WdkModel model, String alignment, String projectId, String sourceId) throws WdkModelException {
     // logger.debug("insertJBrowseLink: alignment: ********\n" + alignment + "\n*******\n");
     StringBuilder buffer = new StringBuilder();
     String[] pieces = alignment.split("Strand=");
     for (String piece : pieces) {
       //if (buffer.length() > 0)
-			//buffer.append("Strand = ");
+      //  buffer.append("Strand = ");
       Matcher matcher = SUBJECT_PATTERN.matcher(piece);
       int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
       while (matcher.find()) {
@@ -199,17 +200,29 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       }
       // check if any subject has been found
       if (min <= max) {
-        Map<String, String> props = getWdkModel(projectId).getProperties();
-        String jbrowseUrl = props.get("JBROWSE_WEBPAGE_URL");
-        String jbrowseServiceUrl = props.get("JBROWSE_SERVICE_URL");
+        Map<String, String> props = model.getProperties();
+        boolean isPortal = isPortal(model);
+        // NOTE: current format of JBROWSE props below is:
+        //   JBROWSE_SERVICE_URL=/eupathdb.rdoherty/service/jbrowse
+        //   JBROWSE_WEBPAGE_URL=/eupathdb.rdoherty/app/jbrowse
+        // If this changes then portal JBrowse links will stop working
+        String webappUrl = isPortal ?
+            ProjectMapper.getMapper(model).getWebAppUrl(projectId) :
+            props.get("LEGACY_WEBAPP_BASE_URL");
+        String jbrowseUrl = isPortal ?
+            webappUrl + "service/jbrowse" :
+            props.get("JBROWSE_WEBPAGE_URL");
+        String jbrowseServiceUrl = isPortal ?
+            webappUrl + "app/jbrowse" :
+            props.get("JBROWSE_SERVICE_URL");
         jbrowseUrl += "?data=" + jbrowseServiceUrl + "/bySequenceId/" + sourceId +
-          "/&loc=" + sourceId + ":" + min + "-" + max + "&tracks=gene";
-
+            "/&loc=" + sourceId + ":" + min + "-" + max + "&tracks=gene";
         buffer.append("\n<a href=\"" + jbrowseUrl + "\"> <B><font color=\"red\">" +
             "Link to Genome Browser</font></B></a>,   Strand = ");
       }
-      else if (buffer.length() > 0)
+      else if (buffer.length() > 0) {
         buffer.append("Strand = ");
+      }
       buffer.append(piece);
     }
     return buffer.toString();
