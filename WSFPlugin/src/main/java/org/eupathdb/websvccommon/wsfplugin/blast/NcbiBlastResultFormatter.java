@@ -210,10 +210,10 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
             ProjectMapper.getMapper(model).getWebAppUrl(projectId) :
             props.get("LEGACY_WEBAPP_BASE_URL");
         String jbrowseUrl = isPortal ?
-            webappUrl + "service/jbrowse" :
+            webappUrl + "app/jbrowse" :
             props.get("JBROWSE_WEBPAGE_URL");
         String jbrowseServiceUrl = isPortal ?
-            webappUrl + "app/jbrowse" :
+            webappUrl + "service/jbrowse" :
             props.get("JBROWSE_SERVICE_URL");
         jbrowseUrl += "?data=" + jbrowseServiceUrl + "/bySequenceId/" + sourceId +
             "/&loc=" + sourceId + ":" + min + "-" + max + "&tracks=gene";
