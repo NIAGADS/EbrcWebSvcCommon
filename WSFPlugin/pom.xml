@@ -27,7 +27,12 @@
       <groupId>org.gusdb</groupId>
       <artifactId>fgputil-util</artifactId>
     </dependency>
-    
+
+    <dependency>
+      <groupId>org.gusdb</groupId>
+      <artifactId>wsf-common</artifactId>
+    </dependency> 
+   
     <dependency>
       <groupId>org.gusdb</groupId>
       <artifactId>wsf-plugin</artifactId>
