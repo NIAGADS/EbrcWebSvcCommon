@@ -105,7 +105,7 @@ public abstract class AbstractOracleTextSearchPlugin extends AbstractPlugin {
 
   private static String wildcarded(String queryExpression) {
 
-    String wildcarded = queryExpression.replaceAll("\\*", "%");
+    String wildcarded = queryExpression.replaceAll("\\*", "\\\\%");
     if (wildcarded.equals(queryExpression)) {
       // no wildcard
       return ("{" + queryExpression + "}");
