@@ -1,5 +1,5 @@
 # EbrcWebSvcCommon
-Plugins to execute web services under the wadl-based Web Service infrastructure <a href="https://github.com/VEuPathDB/WSF">WSF</a> common to all VEuPathDB sites.
+[WSF](https://github.com/VEuPathDB/WSF) Plugins that are common to all VEuPathDB web sites.  See [WSFPlugin/src](WSFPlugin/src/main/java/org/eupathdb/websvccommon/wsfplugin) for the list of plugins.
 
 ## Dependencies
 
