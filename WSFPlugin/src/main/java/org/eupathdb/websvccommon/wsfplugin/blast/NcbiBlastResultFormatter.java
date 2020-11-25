@@ -140,12 +140,15 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
     try {
       // get the defline, and get organism from it
       String defline = alignment.substring(0, alignment.indexOf("Length="));
-      String organism = "none";
-      try { // Ortho does not have organism info in defline
-        organism = getField(defline, findOrganism(defline));
-      }
-      catch (NullPointerException e) {}
-      String projectId = getProject(organism);
+
+      // Note: Ortho does not have organism info in defline; null is the expected return value
+      String organism = getField(defline, findOrganism(defline));
+
+      String projectId = model.getProjectId().equals("OrthoMCL")
+          ? "OrthoMCL"
+          : organism == null
+          ? "none"
+          : getProject(organism); // look up project ID by organism
 
       // get the source id in the alignment, and insert a link there
       int[] sourceIdLocation = findSourceId(alignment);
