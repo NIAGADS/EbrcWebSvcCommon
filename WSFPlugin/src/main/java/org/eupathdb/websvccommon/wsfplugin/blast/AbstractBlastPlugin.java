@@ -22,8 +22,8 @@ import org.gusdb.wsf.plugin.PluginUserException;
 
 public abstract class AbstractBlastPlugin extends AbstractPlugin {
 
-  public static class BlastResultTooLargeException extends PostValidationUserException {
-    public BlastResultTooLargeException(String message) {
+  public static class BlastResultProblemException extends PostValidationUserException {
+    public BlastResultProblemException(String message) {
       super(message);
     }
   }
@@ -135,11 +135,11 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
       if (outFile.length() > MAX_OUTFILE_SIZE) {
         logger.error("Will not prepare Result, too big BYE\n");
         //response.setMessage("\n\n***** Sorry we cannot handle this big result, please repeat your BLAST using fewer results (parameter V=B) or a smaller sequence\n");
-        throw new BlastResultTooLargeException("Sorry we cannot handle this big result (" + outFile.length()/1000000 + "MB).  We suggest you review the input parameters and try again (fewer results -parameter V=B, a smaller sequence, or set complexity filter to yes\n");
+        throw new BlastResultProblemException("Sorry, we cannot handle this big result (" + outFile.length()/1000000 + "MB).  We suggest you review the input parameters and try again (fewer results -parameter V=B, a smaller sequence, or set complexity filter to yes\n");
       }
       else {
         String recordClass = params.get(PARAM_RECORD_CLASS);
-       logger.debug("*********recordclass is:" + recordClass + "\n");
+        logger.debug("*********recordclass is:" + recordClass + "\n");
         String[] orderedColumns = request.getOrderedColumns();
         String message = resultFormatter.formatResult(response, orderedColumns, outFile, recordClass, dbType, wdkModel);
         logger.info("Result prepared BYE\n");
@@ -156,7 +156,7 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
     }
     catch (PluginTimeoutException ex) {
       logger.error("PluginTimeoutException: " + ex);
-      throw new PluginUserException(ex);
+      throw new BlastResultProblemException("The BLAST execution has timed out.  If this issue persists, we suggest you review the input parameters and try again (fewer results -parameter V=B, a smaller sequence, or set complexity filter to yes\n");
     }
     finally {
       cleanup();
