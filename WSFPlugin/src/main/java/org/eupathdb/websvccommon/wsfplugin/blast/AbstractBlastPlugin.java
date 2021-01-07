@@ -110,10 +110,6 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
   public int execute(PluginRequest request, PluginResponse response) throws PluginModelException, PluginUserException {
     logger.info("Invoking " + getClass().getSimpleName() + "...");
 
-    String badResultSuggestion = "suggest you review the input parameters and " +
-        "try again.  For fewer results, change the V=B parameter, try a smaller " +
-        "sequence, or set Low Complexity Filter to yes.";
-
     // create temporary files for input sequence and output report
     try {
       WdkModel wdkModel = InstanceManager.getInstance(WdkModel.class, request.getProjectId());
@@ -140,7 +136,10 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
         logger.error("Will not prepare Result, too big BYE\n");
         //response.setMessage("\n\n***** Sorry we cannot handle this big result, please repeat your BLAST using fewer results (parameter V=B) or a smaller sequence\n");
         throw new BlastResultProblemException(
-            "Sorry, we cannot handle this big result (" + outFile.length()/1000000 + "MB).  We " + badResultSuggestion);
+            "We're sorry, but we cannot handle a BLAST result this large (" +
+            outFile.length()/1000000 + "MB).  To reduce the result size, you " +
+            "could decrease V=B or the Expectation value, turn on the Low " +
+            "Complexity Rilter, or decrease the number of target organisms selected.");
       }
       else {
         String recordClass = params.get(PARAM_RECORD_CLASS);
@@ -162,7 +161,9 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
     catch (PluginTimeoutException ex) {
       logger.error("PluginTimeoutException: " + ex);
       throw new BlastResultProblemException(
-          "The BLAST execution has timed out.  If this issue persists, we " + badResultSuggestion);
+          "The BLAST execution has timed out.  If this issue persists, it is " +
+          "likely because the input sequence was too long, or too many target " +
+          "organisms were selected.");
     }
     finally {
       cleanup();
