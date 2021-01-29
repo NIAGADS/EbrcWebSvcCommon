@@ -1,6 +1,5 @@
 package org.eupathdb.websvccommon.wsfplugin.solrsearch;
 
-import static org.eupathdb.websvccommon.wsfplugin.solrsearch.SiteSearchUtil.getRecordClass;
 import static org.eupathdb.websvccommon.wsfplugin.solrsearch.SiteSearchUtil.getSearchFields;
 import static org.eupathdb.websvccommon.wsfplugin.solrsearch.SiteSearchUtil.getSiteSearchServiceUrl;
 
@@ -24,6 +23,7 @@ import javax.ws.rs.core.Response;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.Priority;
+import org.eupathdb.websvccommon.wsfplugin.PluginUtilities;
 import org.eupathdb.websvccommon.wsfplugin.solrsearch.SiteSearchUtil.SearchField;
 import org.gusdb.fgputil.ArrayUtil;
 import org.gusdb.fgputil.FormatUtil;
@@ -56,7 +56,7 @@ public class EuPathSiteSearchPlugin extends AbstractPlugin {
 
   @Override
   public String[] getColumns(PluginRequest request) throws PluginModelException {
-    RecordClass recordClass = getRecordClass(request);
+    RecordClass recordClass = PluginUtilities.getRecordClass(request);
     PrimaryKeyDefinition pkDef = recordClass.getPrimaryKeyDefinition();
     String[] dynamicColumns = getDynamicColumns(recordClass);
     String[] columns = ArrayUtil.concatenate(pkDef.getColumnRefs(), dynamicColumns);
@@ -105,7 +105,7 @@ public class EuPathSiteSearchPlugin extends AbstractPlugin {
 
       BufferedReader br = new BufferedReader(new InputStreamReader((InputStream)searchResponse.getEntity()));
       String line;
-      RecordClass recordClass = getRecordClass(request);
+      RecordClass recordClass = PluginUtilities.getRecordClass(request);
       boolean pkHasProjectId = recordClass.getPrimaryKeyDefinition().hasColumn("project_id");
       Priority recordLoggingPriority = Level.DEBUG;
       boolean logRecordProcessing = LOG.isEnabledFor(recordLoggingPriority);
@@ -196,7 +196,7 @@ public class EuPathSiteSearchPlugin extends AbstractPlugin {
   }
 
   protected String getRequestedDocumentType(PluginRequest request) throws PluginModelException {
-    return SiteSearchUtil.getRecordClass(request).getUrlSegment();
+    return PluginUtilities.getRecordClass(request).getUrlSegment();
   }
 
   protected Optional<String> getProjectIdForFilter(String projectId) {

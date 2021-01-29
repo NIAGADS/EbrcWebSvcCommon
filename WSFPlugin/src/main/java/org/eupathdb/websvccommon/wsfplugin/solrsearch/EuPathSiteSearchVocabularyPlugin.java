@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.apache.log4j.Logger;
+import org.eupathdb.websvccommon.wsfplugin.PluginUtilities;
 import org.eupathdb.websvccommon.wsfplugin.solrsearch.SiteSearchUtil.SearchField;
 import org.gusdb.wsf.plugin.AbstractPlugin;
 import org.gusdb.wsf.plugin.PluginModelException;
@@ -48,7 +49,7 @@ public class EuPathSiteSearchVocabularyPlugin extends AbstractPlugin {
   }
 
   protected String getRequestedDocumentType(PluginRequest request) throws PluginModelException {
-    return SiteSearchUtil.getRecordClass(request).getUrlSegment();
+    return PluginUtilities.getRecordClass(request).getUrlSegment();
   }
 
   protected Optional<String> getProjectIdForFilter(String projectId) {

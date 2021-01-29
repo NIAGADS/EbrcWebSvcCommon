@@ -1,6 +1,7 @@
 package org.eupathdb.websvccommon.wsfplugin.blast;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -10,14 +11,15 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 import org.eupathdb.common.model.ProjectMapper;
 import org.eupathdb.common.service.PostValidationUserException;
-import org.gusdb.fgputil.runtime.InstanceManager;
+import org.eupathdb.websvccommon.wsfplugin.PluginUtilities;
 import org.gusdb.wdk.model.WdkModel;
 import org.gusdb.wdk.model.WdkModelException;
+import org.gusdb.wdk.model.record.RecordClass;
 import org.gusdb.wsf.plugin.AbstractPlugin;
 import org.gusdb.wsf.plugin.PluginModelException;
-import org.gusdb.wsf.plugin.PluginTimeoutException;
 import org.gusdb.wsf.plugin.PluginRequest;
 import org.gusdb.wsf.plugin.PluginResponse;
+import org.gusdb.wsf.plugin.PluginTimeoutException;
 import org.gusdb.wsf.plugin.PluginUserException;
 
 public abstract class AbstractBlastPlugin extends AbstractPlugin {
@@ -39,27 +41,18 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
   public static final String PARAM_EVALUE = "-e";
   public static final String PARAM_FILTER = "-filter";
 
-  // ========== Common blast return columns
-  public static final String COLUMN_IDENTIFIER = "identifier";
-  public static final String COLUMN_PROJECT_ID = "project_id";
-  public static final String COLUMN_EVALUE_MANT = "evalue_mant";
-  public static final String COLUMN_EVALUE_EXP = "evalue_exp";
-  public static final String COLUMN_SCORE = "score";
-  public static final String COLUMN_SUMMARY = "summary";
-  public static final String COLUMN_ALIGNMENT = "alignment";
-
   // field definitions in the config file
-  private static final String FILE_CONFIG = "blast-config.xml";
+  private static final String FILE_CONFIG = "multiblast-config.xml";
 
   private static final Logger logger = Logger.getLogger(AbstractBlastPlugin.class);
 
   // ========== member variables ==========
-  private final CommandFormatter commandFormatter;
+  private final NcbiBlastCommandFormatter commandFormatter;
   private final ResultFormatter resultFormatter;
 
-  private BlastConfig config;
+  private NcbiBlastConfig config;
 
-  public AbstractBlastPlugin(CommandFormatter commandFormatter, ResultFormatter resultFormatter) {
+  public AbstractBlastPlugin(NcbiBlastCommandFormatter commandFormatter, ResultFormatter resultFormatter) {
     super(FILE_CONFIG);
     this.commandFormatter = commandFormatter;
     this.resultFormatter = resultFormatter;
@@ -69,11 +62,9 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
   public void initialize() throws PluginModelException {
     super.initialize();
 
-    config = new BlastConfig(properties);
+    config = new NcbiBlastConfig(properties);
     commandFormatter.setConfig(config);
     resultFormatter.setConfig(config);
-
-    // create project mapper
   }
 
   @Override
@@ -84,15 +75,9 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
 
   @Override
   public String[] getColumns(PluginRequest request) {
-    return new String[] { COLUMN_IDENTIFIER, COLUMN_PROJECT_ID, COLUMN_EVALUE_MANT, COLUMN_EVALUE_EXP,
-			  COLUMN_SCORE, COLUMN_SUMMARY, COLUMN_ALIGNMENT };
+    return resultFormatter.getDeclaredColumns();
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.gusdb.wsf.plugin.WsfPlugin#validateParameters(java.util.Map)
-   */
   @Override
   public void validateParameters(PluginRequest request) {
     Map<String, String> params = request.getParams();
@@ -101,18 +86,13 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
     }
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.gusdb.wsf.plugin.Plugin#execute(org.gusdb.wsf.plugin.WsfRequest)
-   */
   @Override
   public int execute(PluginRequest request, PluginResponse response) throws PluginModelException, PluginUserException {
     logger.info("Invoking " + getClass().getSimpleName() + "...");
 
     // create temporary files for input sequence and output report
     try {
-      WdkModel wdkModel = InstanceManager.getInstance(WdkModel.class, request.getProjectId());
+      WdkModel wdkModel = PluginUtilities.getWdkModel(request);
       ProjectMapper projectMapper = ProjectMapper.getMapper(wdkModel);
       resultFormatter.setProjectMapper(projectMapper);
 
@@ -142,15 +122,16 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
             "Complexity Rilter, or decrease the number of target organisms selected.");
       }
       else {
-        String recordClass = params.get(PARAM_RECORD_CLASS);
+        RecordClass recordClass = PluginUtilities.getRecordClass(request);
         logger.debug("*********recordclass is:" + recordClass + "\n");
-        String[] orderedColumns = request.getOrderedColumns();
-        String message = resultFormatter.formatResult(response, orderedColumns, outFile, recordClass, dbType, wdkModel);
-        logger.info("Result prepared BYE\n");
-        logger.debug("signal is:" + signal + "\n");
-        logger.debug("message is:" + message + "\n");
-
-        response.setMessage(message + output.toString());
+        try (FileInputStream outFileStream = new FileInputStream(outFile)) {
+          String message = resultFormatter.formatResult(response, request.getOrderedColumns(), outFileStream, recordClass, dbType, wdkModel);
+          logger.info("Result prepared BYE\n");
+          logger.debug("signal is:" + signal + "\n");
+          logger.debug("message is:" + message + "\n");
+  
+          response.setMessage(message + output.toString());
+        }
       }
       return signal;
     }

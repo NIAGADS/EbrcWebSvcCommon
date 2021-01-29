@@ -9,24 +9,23 @@ import org.apache.log4j.Logger;
 import org.gusdb.wsf.plugin.PluginModelException;
 import org.gusdb.wsf.plugin.PluginUserException;
 
-public abstract class NcbiBlastCommandFormatter implements CommandFormatter {
+public abstract class NcbiBlastCommandFormatter {
 
   @SuppressWarnings("unused")
   private static final Logger logger = Logger.getLogger(NcbiBlastCommandFormatter.class);
 
-  protected BlastConfig config;
+  protected NcbiBlastConfig _config;
 
   public abstract String getBlastDatabase(Map<String, String> params)
       throws PluginUserException, PluginModelException;
 
-  @Override
-  public void setConfig(BlastConfig config) {
-    this.config = config;
+  public void setConfig(NcbiBlastConfig config) {
+    _config = config;
   }
 
-  @Override
   public String[] formatCommand(Map<String, String> params, File seqFile,
       File outFile) throws PluginUserException, PluginModelException {
+
     // now prepare the commandline
     List<String> cmds = new ArrayList<String>();
     //cmds.add(config.getBlastPath() + "blastall");
@@ -36,13 +35,13 @@ public abstract class NcbiBlastCommandFormatter implements CommandFormatter {
     //cmds.add("-p");
     //cmds.add(blastApp);
 
-		// Oct 2014: using new blast: blast+
-    cmds.add(config.getBlastPath() + blastApp);
+    // Oct 2014: using new blast: blast+
+    cmds.add(_config.getBlastPath() + blastApp);
 
-		if ( blastApp.equals("blastn") ) {
-			cmds.add("-task");
-			cmds.add(blastApp);
-		}
+    if ( blastApp.equals("blastn") ) {
+      cmds.add("-task");
+      cmds.add(blastApp);
+    }
 
     // get the blast database
     String blastDbs = getBlastDatabase(params);
@@ -55,7 +54,7 @@ public abstract class NcbiBlastCommandFormatter implements CommandFormatter {
     cmds.add("-out");
     cmds.add(outFile.getAbsolutePath());
 
- // set to use 4 cores
+    // set to use 4 cores
     cmds.add("-num_threads");
     cmds.add("4");
 
@@ -70,12 +69,12 @@ public abstract class NcbiBlastCommandFormatter implements CommandFormatter {
         cmds.add("-num_descriptions");
         cmds.add(alignments);
       } else if (paramName.equals(AbstractBlastPlugin.PARAM_FILTER)) {
-				if ( blastApp.equals("blastn") ) cmds.add("-dust");
-				else cmds.add("-seg");
-				if (params.get(paramName).equals("yes")) {    //do not trust default
-					cmds.add("yes"); 
-				}
-				else 	cmds.add("no"); 
+        if ( blastApp.equals("blastn") ) cmds.add("-dust");
+        else cmds.add("-seg");
+        if (params.get(paramName).equals("yes")) {    //do not trust default
+          cmds.add("yes"); 
+        }
+        else 	cmds.add("no"); 
       }
     }
 

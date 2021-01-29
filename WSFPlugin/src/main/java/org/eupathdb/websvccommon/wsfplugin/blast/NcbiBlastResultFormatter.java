@@ -1,9 +1,11 @@
 package org.eupathdb.websvccommon.wsfplugin.blast;
 
+import static org.gusdb.fgputil.FormatUtil.NL;
+
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -17,6 +19,7 @@ import org.eupathdb.websvccommon.wsfplugin.EuPathServiceException;
 import org.gusdb.fgputil.FormatUtil;
 import org.gusdb.wdk.model.WdkModel;
 import org.gusdb.wdk.model.WdkModelException;
+import org.gusdb.wdk.model.record.RecordClass;
 import org.gusdb.wsf.plugin.PluginModelException;
 import org.gusdb.wsf.plugin.PluginResponse;
 import org.gusdb.wsf.plugin.PluginUserException;
@@ -25,6 +28,15 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
 
   @SuppressWarnings("unused")
   private static final Logger logger = Logger.getLogger(NcbiBlastResultFormatter.class);
+
+  // ========== Common blast return columns
+  public static final String COLUMN_IDENTIFIER = "identifier";
+  public static final String COLUMN_PROJECT_ID = "project_id";
+  public static final String COLUMN_EVALUE_MANT = "evalue_mant";
+  public static final String COLUMN_EVALUE_EXP = "evalue_exp";
+  public static final String COLUMN_SCORE = "score";
+  public static final String COLUMN_SUMMARY = "summary";
+  public static final String COLUMN_ALIGNMENT = "alignment";
 
   public static final String MACRO_SUMMARY = "__WSF_BLAST_SUMMARY__";
   public static final String MACRO_ALIGNMENT = "__WSF_BLAST_ALIGNMENT__";
@@ -35,15 +47,21 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
   protected static final String[] DB_LINES_END_GREPS = { "total letters", "Posted date" };
 
   @Override
-  public String formatResult(PluginResponse response, String[] orderedColumns, File outFile,
-      String recordClass, String dbType, WdkModel wdkModel) throws PluginUserException, PluginModelException {
+  public String[] getDeclaredColumns() {
+    return new String[] { COLUMN_IDENTIFIER, COLUMN_PROJECT_ID, COLUMN_EVALUE_MANT, COLUMN_EVALUE_EXP,
+        COLUMN_SCORE, COLUMN_SUMMARY, COLUMN_ALIGNMENT };
+  }
+
+  @Override
+  public String formatResult(PluginResponse response, String[] orderedColumns, InputStream resultStream,
+      RecordClass recordClass, String dbType, WdkModel wdkModel) throws PluginUserException, PluginModelException {
 
     // read and parse the output
     StringBuilder content = new StringBuilder();
     Map<String, String> summaries = new LinkedHashMap<>();
     String line;
     try {
-      BufferedReader reader = new BufferedReader(new FileReader(outFile));
+      BufferedReader reader = new BufferedReader(new InputStreamReader(resultStream));
       boolean inSummary = false, inAlignment = false;
       StringBuilder alignment = new StringBuilder();
       while ((line = reader.readLine()) != null) {
@@ -76,29 +94,29 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
               processAlignment(response, orderedColumns, recordClass, dbType, summaries, alignment.toString(), wdkModel);
               alignment = new StringBuilder();
             }
-            alignment.append(line).append(newline);
+            alignment.append(line).append(NL);
           }
         }
         else { // not in summary nor in alignment
           if (lineTrimmed.startsWith("Sequences producing significant alignments")) {
             // found the start of the summary section
             inSummary = true;
-            content.append(newline + MACRO_SUMMARY + newline + newline);
+            content.append(NL + MACRO_SUMMARY + NL + NL);
             // read and skip an empty line
             reader.readLine();
           }
           else if (line.startsWith(">")) {
             // found the first alignment section
             inAlignment = true;
-            content.append(newline + MACRO_ALIGNMENT + newline + newline);
+            content.append(NL + MACRO_ALIGNMENT + NL + NL);
             // add the line to the alignment
-            alignment.append(line).append(newline);
+            alignment.append(line).append(NL);
           }
           else if (lineTrimmed.startsWith(DB_LINES_START_GREP)) {
             content.append(convertDatabaseLines(lineTrimmed, reader));
           }
           else {
-            content.append(line).append(newline);
+            content.append(line).append(NL);
           }
         }
       }
@@ -130,12 +148,12 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
     for (String file : files) {
       filenames.add(Paths.get(file.trim()).getFileName().toString());
     }
-    return new StringBuilder(DB_LINES_START_GREP).append(newline)
-        .append(FormatUtil.join(filenames.toArray(), ";" + newline)).append(newline)
-        .append(line).append(newline).toString();
+    return new StringBuilder(DB_LINES_START_GREP).append(NL)
+        .append(FormatUtil.join(filenames.toArray(), ";" + NL)).append(NL)
+        .append(line).append(NL).toString();
   }
 
-  protected void processAlignment(PluginResponse response, String[] columns, String recordClass, String dbType,
+  protected void processAlignment(PluginResponse response, String[] columns, RecordClass recordClass, String dbType,
       Map<String, String> summaries, String alignment, WdkModel model) throws PluginUserException, PluginModelException {
     try {
       // get the defline, and get organism from it
@@ -153,7 +171,7 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       // get the source id in the alignment, and insert a link there
       int[] sourceIdLocation = findSourceId(alignment);
       String sourceId = getField(defline, sourceIdLocation);
-      String idUrl = getIdUrl(model.getRecordClassByFullName(recordClass).get(), projectId, sourceId, defline);
+      String idUrl = getIdUrl(recordClass, projectId, sourceId, defline);
       alignment = insertUrl(alignment, sourceIdLocation, idUrl, sourceId);
 
       // get score and e-value from summary;
@@ -241,25 +259,25 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
       evalueMant = "1";
     String[] row = new String[columns.length];
     for (int i = 0; i < columns.length; i++) {
-      if (columns[i].equals(AbstractBlastPlugin.COLUMN_ALIGNMENT)) {
+      if (columns[i].equals(COLUMN_ALIGNMENT)) {
         row[i] = alignment;
       }
-      else if (columns[i].equals(AbstractBlastPlugin.COLUMN_EVALUE_EXP)) {
+      else if (columns[i].equals(COLUMN_EVALUE_EXP)) {
         row[i] = evalueExp;
       }
-      else if (columns[i].equals(AbstractBlastPlugin.COLUMN_EVALUE_MANT)) {
+      else if (columns[i].equals(COLUMN_EVALUE_MANT)) {
         row[i] = evalueMant;
       }
-      else if (columns[i].equals(AbstractBlastPlugin.COLUMN_IDENTIFIER)) {
+      else if (columns[i].equals(COLUMN_IDENTIFIER)) {
         row[i] = sourceId;
       }
-      else if (columns[i].equals(AbstractBlastPlugin.COLUMN_PROJECT_ID)) {
+      else if (columns[i].equals(COLUMN_PROJECT_ID)) {
         row[i] = projectId;
       }
-      else if (columns[i].equals(AbstractBlastPlugin.COLUMN_SCORE)) {
+      else if (columns[i].equals(COLUMN_SCORE)) {
         row[i] = Float.toString(score);
       }
-      else if (columns[i].equals(AbstractBlastPlugin.COLUMN_SUMMARY)) {
+      else if (columns[i].equals(COLUMN_SUMMARY)) {
         row[i] = summary;
       }
       else {
@@ -270,15 +288,17 @@ public class NcbiBlastResultFormatter extends AbstractResultFormatter {
     }
     return row;
   }
-/** subclasses will add custom classes
- * 
- * @param index
- * @param row
- * @param columns
- * @param defline
- * @return
- */
+
+  /** subclasses will add custom classes
+   * 
+   * @param index
+   * @param row
+   * @param columns
+   * @param defline
+   * @return
+   */
   protected boolean assignExtraColumns(int index, String[] row, String[] columns, String defline) {
     return false;
   }
+
 }

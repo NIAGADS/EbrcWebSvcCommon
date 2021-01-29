@@ -17,13 +17,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status.Family;
 
 import org.apache.log4j.Logger;
+import org.eupathdb.websvccommon.wsfplugin.PluginUtilities;
 import org.gusdb.fgputil.IoUtil;
 import org.gusdb.fgputil.json.JsonIterators;
-import org.gusdb.fgputil.runtime.GusHome;
-import org.gusdb.fgputil.runtime.InstanceManager;
-import org.gusdb.wdk.model.Utilities;
-import org.gusdb.wdk.model.WdkModel;
-import org.gusdb.wdk.model.record.RecordClass;
 import org.gusdb.wsf.plugin.PluginModelException;
 import org.gusdb.wsf.plugin.PluginRequest;
 import org.json.JSONArray;
@@ -70,12 +66,8 @@ public class SiteSearchUtil {
     }
   }
 
-  public static WdkModel getWdkModel(String projectId) {
-    return InstanceManager.getInstance(WdkModel.class, GusHome.getGusHome(), projectId);
-  }
-
   public static String getSiteSearchServiceUrl(PluginRequest request) throws PluginModelException {
-    Map<String,String> modelProps = getWdkModel(request.getProjectId()).getProperties();
+    Map<String,String> modelProps = PluginUtilities.getWdkModel(request.getProjectId()).getProperties();
     String localhost = modelProps.get(LOCALHOST_PROP_KEY);
     String siteSearchServiceUrl = modelProps.get(SERVICE_URL_PROP_KEY);
     if (localhost == null || siteSearchServiceUrl == null) {
@@ -83,13 +75,6 @@ public class SiteSearchUtil {
           LOCALHOST_PROP_KEY + ", " + SERVICE_URL_PROP_KEY);
     }
     return localhost + siteSearchServiceUrl;
-  }
-
-  public static RecordClass getRecordClass(PluginRequest request) throws PluginModelException {
-    String questionFullName = request.getContext().get(Utilities.QUERY_CTX_QUESTION);
-    return getWdkModel(request.getProjectId()).getQuestionByFullName(questionFullName)
-      .map(question -> question.getRecordClass())
-      .orElseThrow(() -> new PluginModelException("Could not find context question: " + questionFullName));
   }
 
   public static List<SearchField> getSearchFields(String siteSearchServiceUrl, String documentType, Optional<String> projectId) throws PluginModelException {
