@@ -42,7 +42,7 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
   public static final String PARAM_FILTER = "-filter";
 
   // field definitions in the config file
-  private static final String FILE_CONFIG = "multiblast-config.xml";
+  private static final String FILE_CONFIG = "blast-config.xml";
 
   private static final Logger logger = Logger.getLogger(AbstractBlastPlugin.class);
 
