@@ -2,6 +2,10 @@ package org.eupathdb.websvccommon.wsfplugin.blast;
 
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+import org.gusdb.fgputil.FormatUtil;
+import org.gusdb.fgputil.FormatUtil.Style;
+import org.jfree.util.Log;
 import org.json.JSONObject;
 
 /**
@@ -19,6 +23,8 @@ import org.json.JSONObject;
  * @author rdoherty
  */
 public class MultiBlastServiceParams {
+
+  private static final Logger LOG = Logger.getLogger(MultiBlastServiceParams.class);
 
   public static final String BLAST_DATABASE_ORGANISM_PARAM_NAME = "BlastDatabaseOrganism";
   public static final String BLAST_DATABASE_TYPE_PARAM_NAME = "BlastDatabaseType";
@@ -73,6 +79,8 @@ public class MultiBlastServiceParams {
    * @return json object to be fed to multi-blast service
    */
   public static JSONObject buildNewJobRequestJson(Map<String, String> params) {
+
+    LOG.info("Converting the following param values to JSON: " + FormatUtil.prettyPrint(params, Style.MULTI_LINE));
 
     /* TODO Convert the typescript code below to Java in order to generate a
      * service-compatible json request object; required constants should already
