@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+{# $SourceFileURL$ #}
+Templated by Conifer using
+{{ template_path }}
+with vars from
+Cohort: {{ cohort }}
+Project: {{ project }}
+Environment: {{ env|default() }}
+site_vars file: {{ site_vars }}
+-->
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+  <comment>The configuration file for MultiBlast Plugin.</comment> 
+
+  <!-- Optional, maximum running time for blast, in seconds. If blast runs
+    longer than the given timeout, an timeout exception will be thrown out,
+    and blast run will be terminated. This entry is optional, and default is
+    300 (i.e. 5 minutes) if not specified
+  <entry key="Timeout">300</entry>
+  -->
+
+  <!-- Optional, the regular expression used to match the source_id in the
+     defline. This regex, as well as the other regex in this config file,
+     supports only Java's flavor. The source_id can be included in a capture
+     group, and capture group index can be specified by SourceIdRegexIndex
+     option. By default, the following regex will be used:
+  <entry key="IdentifierRegex"><![CDATA[^>*(?:[^\|]*\|)?(\S+)]]></entry>
+  -->
+  <entry key="IdentifierRegex">{{ blastconfig_idBlastRegex }}</entry>
+
+  <!-- Optional, the regular expression used to match the organism in the
+    defline. The organism can be included in a group, and group index can be
+    specified by OrganismRegexIndex option. By default, the following regex
+    will be used: \|\s*organism=([^_|\s]+)
+  <entry key="OrganismRegex"><![CDATA[\|\s*organism=([^_|\s]+)]]></entry>
+  -->
+
+</properties>

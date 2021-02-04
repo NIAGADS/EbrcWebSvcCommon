@@ -44,27 +44,34 @@ public class MultiBlastServiceParams {
   public static final String GAP_COSTS_PARAM_NAME = "GapCosts";
   public static final String MATCH_MISMATCH_SCORE = "MatchMismatchScore";
 
-
   public static String[] getAllParamNames() {
     return new String[] {
-        BLAST_DATABASE_TYPE_PARAM_NAME,
-        BLAST_ALGORITHM_PARAM_NAME,
-        BLAST_DATABASE_ORGANISM_PARAM_NAME,
-        BLAST_QUERY_SEQUENCE_PARAM_NAME,
-        EXPECTATION_VALUE_PARAM_NAME,
-        NUM_QUERY_RESULTS_PARAM_NAME,
-        MAX_MATCHES_QUERY_RANGE_PARAM_NAME,
-        WORD_SIZE_PARAM_NAME,
-        SCORING_MATRIX_PARAM_NAME,
-        MATCH_MISMATCH_SCORE,
-        GAP_COSTS_PARAM_NAME,
-        COMP_ADJUST_PARAM_NAME,
-        FILTER_LOW_COMPLEX_PARAM_NAME,
-        SOFT_MASK_PARAM_NAME,
-        LOWER_CASE_MASK_PARAM_NAME
-      };
+      BLAST_DATABASE_TYPE_PARAM_NAME,
+      BLAST_ALGORITHM_PARAM_NAME,
+      BLAST_DATABASE_ORGANISM_PARAM_NAME,
+      BLAST_QUERY_SEQUENCE_PARAM_NAME,
+      EXPECTATION_VALUE_PARAM_NAME,
+      NUM_QUERY_RESULTS_PARAM_NAME,
+      MAX_MATCHES_QUERY_RANGE_PARAM_NAME,
+      WORD_SIZE_PARAM_NAME,
+      SCORING_MATRIX_PARAM_NAME,
+      MATCH_MISMATCH_SCORE,
+      GAP_COSTS_PARAM_NAME,
+      COMP_ADJUST_PARAM_NAME,
+      FILTER_LOW_COMPLEX_PARAM_NAME,
+      SOFT_MASK_PARAM_NAME,
+      LOWER_CASE_MASK_PARAM_NAME
+    };
   }
 
+  /**
+   * Converts the internal values of the WDK multiblaset query params into
+   * a JSON object passed to the multi-blast service to create a new job for
+   * a single input sequence.
+   *
+   * @param params internal values of params
+   * @return json object to be fed to multi-blast service
+   */
   public static JSONObject buildNewJobRequestJson(Map<String, String> params) {
 
     /* TODO Convert the typescript code below to Java in order to generate a

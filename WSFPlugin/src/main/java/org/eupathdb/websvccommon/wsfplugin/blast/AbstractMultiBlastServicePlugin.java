@@ -42,8 +42,7 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
   private static final int MAX_WAIT_TIME_MILLIS = 5 /* minutes */ * 60 * 1000;
 
   // field definitions in the config file
-  // TODO: do we need a properties file at all?
-  private static final String FILE_CONFIG = null; // "multiblast-config.xml";
+  private static final String FILE_CONFIG = "multiblast-config.xml";
 
   // required properties in model.prop
   private static final String LOCALHOST_PROP_KEY = "LOCALHOST";
