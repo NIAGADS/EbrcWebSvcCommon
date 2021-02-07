@@ -119,7 +119,7 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
             "We're sorry, but we cannot handle a BLAST result this large (" +
             outFile.length()/1000000 + "MB).  To reduce the result size, you " +
             "could decrease V=B or the Expectation value, turn on the Low " +
-            "Complexity Rilter, or decrease the number of target organisms selected.");
+            "Complexity filter, or decrease the number of target organisms selected.");
       }
       else {
         RecordClass recordClass = PluginUtilities.getRecordClass(request);
