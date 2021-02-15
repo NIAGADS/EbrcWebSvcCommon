@@ -101,7 +101,7 @@ public class MultiBlastServiceParams {
       var penalty = rewardPenaltyPair.getSecond();
 
       return requestConfig
-        .put("selectedTool", selectedTool)
+        .put("tool", selectedTool)
         .put("task", selectedTool)
         .put("dust", dustConfig)
         .put("reward", reward)
@@ -180,6 +180,12 @@ public class MultiBlastServiceParams {
     var gapOpen = gapCostsPair.getFirst();
     var gapExtend = gapCostsPair.getSecond();
 
+    // FIXME Should have the outFormat be "pairwise". This will
+    // require fixes to the multi-blast service. (The multi-blast service
+    // currently doesn't allow "maxTargetSeqs" to be passed when the default
+    // report format is "pairwise".)
+    var outFormat = new JSONObject().put("format", "single-file-json");
+
     var baseConfig =
       new JSONObject()
         .put("query", query)
@@ -189,7 +195,8 @@ public class MultiBlastServiceParams {
         .put("softMasking", paramValueToBoolean(softMaskStr))
         .put("lcaseMasking", paramValueToBoolean(lowerCaseMaskStr))
         .put("gapOpen", gapOpen)
-        .put("gapExtend", gapExtend);
+        .put("gapExtend", gapExtend)
+        .put("outFormat", outFormat);
 
     var maxMatches = paramValueToInt(maxMatchesStr);
 
