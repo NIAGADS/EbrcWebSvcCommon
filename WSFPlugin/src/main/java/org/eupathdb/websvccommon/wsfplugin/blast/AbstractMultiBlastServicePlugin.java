@@ -84,7 +84,12 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
     String multiBlastServiceUrl = getMultiBlastServiceUrl(request);
 
     // use passed params to POST new job request to blast service
-    String jobId = createJob(MultiBlastServiceParams.buildNewJobRequestJson(request.getParams()), multiBlastServiceUrl);
+    JSONObject newJobRequestJson = MultiBlastServiceParams.buildNewJobRequestJson(request.getParams());
+
+    LOG.info("Requesting multi-blast job creation at " + multiBlastServiceUrl +
+        " with request body: " + newJobRequestJson.toString(2));
+
+    String jobId = createJob(newJobRequestJson, multiBlastServiceUrl);
 
     // start timer on wait time
     Timer t = new Timer();
