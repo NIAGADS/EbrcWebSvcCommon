@@ -1,5 +1,6 @@
 package org.eupathdb.websvccommon.wsfplugin.blast;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -7,6 +8,7 @@ import org.gusdb.fgputil.FormatUtil;
 import org.gusdb.fgputil.FormatUtil.Style;
 import org.gusdb.fgputil.Tuples.TwoTuple;
 import org.gusdb.wsf.plugin.PluginUserException;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -73,13 +75,13 @@ public class MultiBlastServiceParams {
 
   /**
    * Converts the internal values of the WDK multiblaset query params into
-   * a JSON object passed to the multi-blast service to create a new job for
+   * a JSON object passed to the multi-blast service to configure a new job for
    * a single input sequence.
    *
    * @param params internal values of params
-   * @return json object to be fed to multi-blast service
+   * @return json object to be passed as "config" to multi-blast service
    */
-  public static JSONObject buildNewJobRequestJson(Map<String, String> params) throws PluginUserException {
+  public static JSONObject buildNewJobRequestConfigJson(Map<String, String> params) throws PluginUserException {
 
     LOG.info("Converting the following param values to JSON: " + FormatUtil.prettyPrint(params, Style.MULTI_LINE));
 
@@ -136,6 +138,32 @@ public class MultiBlastServiceParams {
     }
 
     throw new PluginUserException("The tool type '" + selectedTool + "' is unsupported");
+  }
+
+  /**
+   * Converts the internal values of the WDK multiblaset query params into
+   * a JSON array passed to the multi-blast service which specifies the
+   * databases the job should target
+   *
+   * @param params internal values of params
+   * @return json array to be passed as "targets" to multi-blast service
+   */
+  public static JSONArray buildNewJobRequestTargetJson(Map<String, String> params) {
+    var organismsStr = params.get(BLAST_DATABASE_ORGANISM_PARAM_NAME);
+    var targetType = params.get(BLAST_DATABASE_TYPE_PARAM_NAME);
+
+    var organisms = organismsStr.split(",");
+
+    var targets = Arrays.stream(organisms)
+      .filter(organism -> !(organism.equals("-1") || organism.length() <= 3))
+      .map(leafOrganism ->
+        new JSONObject()
+          .put("organism", leafOrganism)
+          .put("target", leafOrganism + targetType)
+      )
+      .toArray();
+
+    return new JSONArray(targets);
   }
 
   private static JSONObject buildBaseRequestConfig(Map<String, String> params) {
