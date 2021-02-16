@@ -29,7 +29,7 @@ public class MultiBlastServiceParams {
 
   private static final Logger LOG = Logger.getLogger(MultiBlastServiceParams.class);
 
-  public static final String BLAST_DATABASE_ORGANISM_PARAM_NAME = "MultiBlastDatabaseOrganism";
+  public static final String BLAST_DATABASE_ORGANISM_PARAM_NAME = "BlastDatabaseOrganism";
   public static final String BLAST_DATABASE_TYPE_PARAM_NAME = "MultiBlastDatabaseType";
   public static final String BLAST_QUERY_SEQUENCE_PARAM_NAME = "BlastQuerySequence";
   public static final String BLAST_ALGORITHM_PARAM_NAME = "BlastAlgorithm";
