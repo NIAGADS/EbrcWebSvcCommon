@@ -20,10 +20,15 @@ import org.eupathdb.websvccommon.wsfplugin.PluginUtilities;
 import org.gusdb.fgputil.FormatUtil;
 import org.gusdb.fgputil.IoUtil;
 import org.gusdb.fgputil.Timer;
+import org.gusdb.fgputil.Tuples.TwoTuple;
 import org.gusdb.fgputil.runtime.ThreadUtil;
 import org.gusdb.fgputil.web.HttpMethod;
+import org.gusdb.fgputil.web.LoginCookieFactory;
+import org.gusdb.wdk.model.Utilities;
 import org.gusdb.wdk.model.WdkModel;
+import org.gusdb.wdk.model.WdkModelException;
 import org.gusdb.wdk.model.record.RecordClass;
+import org.gusdb.wdk.model.user.User;
 import org.gusdb.wsf.plugin.AbstractPlugin;
 import org.gusdb.wsf.plugin.DelayedResultException;
 import org.gusdb.wsf.plugin.PluginModelException;
@@ -47,6 +52,10 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
   // required properties in model.prop
   private static final String LOCALHOST_PROP_KEY = "LOCALHOST";
   private static final String SERVICE_URL_PROP_KEY = "MULTI_BLAST_SERVICE_URL";
+
+  // header names for blast service authentication
+  private static final String GUEST_USER_ID_HEADER_NAME = "Auth-Guest-User-Id";
+  private static final String REGISTERED_USER_AUTH_HEADER_NAME = "Auth-Key";
 
   private final ResultFormatter _resultFormatter;
 
@@ -80,11 +89,17 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
   protected int execute(PluginRequest request, PluginResponse response)
       throws PluginModelException, PluginUserException, DelayedResultException {
 
+    // get the WDK model
+    WdkModel wdkModel = PluginUtilities.getWdkModel(request);
+
+    // get the required authentication header for this user
+    TwoTuple<String,String> authHeader = getAuthHeader(wdkModel, request.getContext());
+
     // find base URL for multi-blast service
     String multiBlastServiceUrl = getMultiBlastServiceUrl(request);
 
     // use passed params to POST new job request to blast service
-    String jobId = createJob(MultiBlastServiceParams.buildNewJobRequestJson(request.getParams()), multiBlastServiceUrl);
+    String jobId = createJob(MultiBlastServiceParams.buildNewJobRequestJson(request.getParams()), multiBlastServiceUrl, authHeader);
 
     // start timer on wait time
     Timer t = new Timer();
@@ -96,7 +111,7 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
     while (true) {
 
       // query the job status (if results in cache, should return complete immediately)
-      if (isJobComplete(multiBlastServiceUrl, jobId)) {
+      if (isJobComplete(multiBlastServiceUrl, jobId, authHeader)) {
         break;
       }
 
@@ -110,18 +125,34 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
     }
 
     // job complete; gather prerequisites
-    WdkModel wdkModel = PluginUtilities.getWdkModel(request);
     RecordClass recordClass = PluginUtilities.getRecordClass(request);
     String dbType = request.getParams().get(MultiBlastServiceParams.BLAST_DATABASE_TYPE_PARAM_NAME);
     String[] orderedColumns = request.getOrderedColumns();
 
     // write results to plugin response
-    writeResults(multiBlastServiceUrl, jobId, response, wdkModel, recordClass, dbType, orderedColumns);
+    writeResults(multiBlastServiceUrl, jobId, authHeader, response, wdkModel, recordClass, dbType, orderedColumns);
 
     return 0;
   }
 
-  private void writeResults(String multiBlastServiceUrl, String jobId,
+  private TwoTuple<String,String> getAuthHeader(WdkModel wdkModel, Map<String, String> requestContext) {
+    try {
+      User user = wdkModel.getUserFactory().getUserById(
+          Long.parseLong(requestContext.get(Utilities.QUERY_CTX_USER))).orElseThrow();
+      return user.isGuest()
+          ? new TwoTuple<>(
+              GUEST_USER_ID_HEADER_NAME,
+              String.valueOf(user.getUserId()))
+          : new TwoTuple<>(
+              REGISTERED_USER_AUTH_HEADER_NAME,
+              new LoginCookieFactory(wdkModel.getModelConfig().getSecretKey()).getLoginCookieValue(user.getEmail()));
+    }
+    catch(WdkModelException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private void writeResults(String multiBlastServiceUrl, String jobId, TwoTuple<String,String> authHeader,
       PluginResponse response, WdkModel wdkModel, RecordClass recordClass,
       String dbType, String[] orderedColumns) throws PluginModelException, PluginUserException {
 
@@ -137,7 +168,7 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
 
     // make job report request
     try (CloseableResponse jobReportResponse = makeRequest(
-        jobReportEndpointUrl, HttpMethod.POST, Optional.of(jobReportRequestJson))) {
+        jobReportEndpointUrl, HttpMethod.POST, Optional.of(jobReportRequestJson), authHeader)) {
 
       if (jobReportResponse.getStatus() != 200) {
         // error occurred; read entire body for error message
@@ -167,13 +198,13 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
    * @return true if job is complete, else false (if still running)
    * @throws PluginModelException if job has errored
    */
-  private static boolean isJobComplete(String multiBlastServiceUrl, String jobId) throws PluginModelException {
+  private static boolean isJobComplete(String multiBlastServiceUrl, String jobId, TwoTuple<String,String> authHeader) throws PluginModelException {
     String jobIdEndpointUrl = multiBlastServiceUrl + "/jobs/" + jobId;
     LOG.info("Requesting multi-blast job status at " + jobIdEndpointUrl);
 
     // make job status request
     try (CloseableResponse jobStatusResponse = makeRequest(
-        jobIdEndpointUrl, HttpMethod.GET, Optional.empty())) {
+        jobIdEndpointUrl, HttpMethod.GET, Optional.empty(), authHeader)) {
   
       String responseBody = readSmallResponseBody(jobStatusResponse);
       if (jobStatusResponse.getStatus() != 200) {
@@ -200,13 +231,13 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
     }
   }
 
-  private static String createJob(JSONObject newJobRequestBody, String multiBlastServiceUrl) throws PluginModelException {
+  private static String createJob(JSONObject newJobRequestBody, String multiBlastServiceUrl, TwoTuple<String,String> authHeader) throws PluginModelException {
     String jobsEndpointUrl = multiBlastServiceUrl + "/jobs";
     LOG.info("Requesting new multi-blast job at " + jobsEndpointUrl + " with JSON body: " + newJobRequestBody.toString(2));
 
     // make new job request
     try (CloseableResponse newJobResponse = makeRequest(
-        jobsEndpointUrl, HttpMethod.POST, Optional.of(newJobRequestBody))) {
+        jobsEndpointUrl, HttpMethod.POST, Optional.of(newJobRequestBody), authHeader)) {
 
       String responseBody = readSmallResponseBody(newJobResponse);
       if (newJobResponse.getStatus() != 200) {
@@ -220,17 +251,21 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
     }
   }
 
-  private static CloseableResponse makeRequest(String url, HttpMethod method, Optional<JSONObject> body) {
+  private static CloseableResponse makeRequest(String url, HttpMethod method, Optional<JSONObject> body, TwoTuple<String,String> authHeader) {
     Client client = ClientBuilder.newClient();
     WebTarget webTarget = client.target(url);
     Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
     switch(method) {
       case POST:
-        return new CloseableResponse(invocationBuilder.post(Entity.entity(body.map(JSONObject::toString)
+        return new CloseableResponse(invocationBuilder
+            .header(authHeader.getKey(), authHeader.getValue())
+            .post(Entity.entity(body.map(JSONObject::toString)
             .orElseThrow(() -> new RuntimeException("Body is required for POST")), MediaType.APPLICATION_JSON)));
       case GET:
         body.ifPresent(b -> LOG.warn("JSONObject passed to method to generated GET request; it will be ignored."));
-        return new CloseableResponse(invocationBuilder.get());
+        return new CloseableResponse(invocationBuilder
+            .header(authHeader.getKey(), authHeader.getValue())
+            .get());
       default:
         throw new RuntimeException("Only POST and GET methods are currently supported (not " + method + ").");
     }
