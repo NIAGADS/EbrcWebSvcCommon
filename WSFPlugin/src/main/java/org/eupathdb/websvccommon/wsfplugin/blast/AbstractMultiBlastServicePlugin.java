@@ -82,7 +82,13 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
 
   @Override
   public void validateParameters(PluginRequest request) throws PluginModelException, PluginUserException {
-    // let WDK handle validation for now
+    // WDK handles most validation; simply confirm single submitted sequence
+    String sequence = request.getParams().get(MultiBlastServiceParams.BLAST_QUERY_SEQUENCE_PARAM_NAME);
+    int firstIndex = sequence.indexOf('>');
+    if (firstIndex != -1 && sequence.indexOf('>', firstIndex + 1) != -1) {
+      // more than one sequence
+      throw new PluginUserException("Only one sequence can be submitted at a time.");
+    }
   }
 
   @Override
