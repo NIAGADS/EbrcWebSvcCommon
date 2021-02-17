@@ -15,6 +15,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.log4j.Logger;
+import org.eupathdb.common.model.ProjectMapper;
 import org.eupathdb.websvccommon.wsfplugin.CloseableResponse;
 import org.eupathdb.websvccommon.wsfplugin.PluginUtilities;
 import org.gusdb.fgputil.FormatUtil;
@@ -35,7 +36,6 @@ import org.gusdb.wsf.plugin.PluginModelException;
 import org.gusdb.wsf.plugin.PluginRequest;
 import org.gusdb.wsf.plugin.PluginResponse;
 import org.gusdb.wsf.plugin.PluginUserException;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
@@ -94,9 +94,18 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
   @Override
   protected int execute(PluginRequest request, PluginResponse response)
       throws PluginModelException, PluginUserException, DelayedResultException {
-
+  
     // get the WDK model
     WdkModel wdkModel = PluginUtilities.getWdkModel(request);
+
+    // set up project mapper
+    try {
+      ProjectMapper projectMapper = ProjectMapper.getMapper(wdkModel);
+      _resultFormatter.setProjectMapper(projectMapper);
+    } catch (WdkModelException ex) {
+      LOG.error("WdkModelException: " + ex);
+      throw new PluginModelException(ex);
+    }
 
     // get the required authentication header for this user
     TwoTuple<String,String> authHeader = getAuthHeader(wdkModel, request.getContext());
@@ -104,8 +113,16 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
     // find base URL for multi-blast service
     String multiBlastServiceUrl = getMultiBlastServiceUrl(request);
 
+    // retrieve project ID
+    String projectId = wdkModel.getProjectId();
+
     // use passed params to POST new job request to blast service
-    String jobId = createJob(MultiBlastServiceParams.buildNewJobRequestJson(request.getParams()), multiBlastServiceUrl, authHeader);
+    JSONObject newJobRequestJson = new JSONObject()
+      .put("site", projectId)
+      .put("config", MultiBlastServiceParams.buildNewJobRequestConfigJson(request.getParams()))
+      .put("targets", MultiBlastServiceParams.buildNewJobRequestTargetJson(request.getParams()));
+
+    String jobId = createJob(newJobRequestJson, multiBlastServiceUrl, authHeader);
 
     // start timer on wait time
     Timer t = new Timer();
@@ -130,7 +147,7 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
       ThreadUtil.sleep(POLLING_INTERVAL_MILLIS);
     }
 
-    // job complete; gather prerequisites
+    // job complete; gather remaining prerequisites
     RecordClass recordClass = PluginUtilities.getRecordClass(request);
     String dbType = request.getParams().get(MultiBlastServiceParams.BLAST_DATABASE_TYPE_PARAM_NAME);
     String[] orderedColumns = request.getOrderedColumns();
@@ -163,18 +180,13 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
       String dbType, String[] orderedColumns) throws PluginModelException, PluginUserException {
 
     // define request data
-    String jobReportEndpointUrl = multiBlastServiceUrl + "/jobs/" + jobId + "/report";
-    JSONObject jobReportRequestJson = new JSONObject()
-      .put("format", "pairwise")
-      .put("fields", new JSONArray()
-    );
+    String jobReportEndpointUrl = multiBlastServiceUrl + "/jobs/" + jobId + "/report?format=pairwise&zip=false&inline=true";
 
-    LOG.info("Requesting multi-blast job results at " + jobReportEndpointUrl +
-        " with request body: " + jobReportRequestJson.toString(2));
+    LOG.info("Requesting multi-blast job results at " + jobReportEndpointUrl);
 
     // make job report request
     try (CloseableResponse jobReportResponse = makeRequest(
-        jobReportEndpointUrl, HttpMethod.POST, Optional.of(jobReportRequestJson), authHeader)) {
+        jobReportEndpointUrl, HttpMethod.GET, Optional.empty(), authHeader)) {
 
       if (jobReportResponse.getStatus() != 200) {
         // error occurred; read entire body for error message
@@ -295,11 +307,11 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
   private static String getMultiBlastServiceUrl(PluginRequest request) throws PluginModelException {
     Map<String,String> modelProps = PluginUtilities.getWdkModel(request).getProperties();
     String localhost = modelProps.get(LOCALHOST_PROP_KEY);
-    String siteSearchServiceUrl = modelProps.get(SERVICE_URL_PROP_KEY);
-    if (localhost == null || siteSearchServiceUrl == null) {
+    String multiBlastServiceUrl = modelProps.get(SERVICE_URL_PROP_KEY);
+    if (localhost == null || multiBlastServiceUrl == null) {
       throw new PluginModelException("model.prop must contain the properties: " +
           LOCALHOST_PROP_KEY + ", " + SERVICE_URL_PROP_KEY);
     }
-    return localhost + siteSearchServiceUrl;
+    return localhost + multiBlastServiceUrl;
   }
 }

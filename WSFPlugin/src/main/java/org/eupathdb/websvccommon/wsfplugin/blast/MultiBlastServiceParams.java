@@ -1,10 +1,14 @@
 package org.eupathdb.websvccommon.wsfplugin.blast;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.gusdb.fgputil.FormatUtil;
 import org.gusdb.fgputil.FormatUtil.Style;
+import org.gusdb.fgputil.Tuples.TwoTuple;
+import org.gusdb.wsf.plugin.PluginUserException;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -26,7 +30,7 @@ public class MultiBlastServiceParams {
   private static final Logger LOG = Logger.getLogger(MultiBlastServiceParams.class);
 
   public static final String BLAST_DATABASE_ORGANISM_PARAM_NAME = "BlastDatabaseOrganism";
-  public static final String BLAST_DATABASE_TYPE_PARAM_NAME = "BlastDatabaseType";
+  public static final String BLAST_DATABASE_TYPE_PARAM_NAME = "MultiBlastDatabaseType";
   public static final String BLAST_QUERY_SEQUENCE_PARAM_NAME = "BlastQuerySequence";
   public static final String BLAST_ALGORITHM_PARAM_NAME = "BlastAlgorithm";
 
@@ -71,156 +75,171 @@ public class MultiBlastServiceParams {
 
   /**
    * Converts the internal values of the WDK multiblaset query params into
-   * a JSON object passed to the multi-blast service to create a new job for
+   * a JSON object passed to the multi-blast service to configure a new job for
    * a single input sequence.
    *
    * @param params internal values of params
-   * @return json object to be fed to multi-blast service
+   * @return json object to be passed as "config" to multi-blast service
    */
-  public static JSONObject buildNewJobRequestJson(Map<String, String> params) {
+  public static JSONObject buildNewJobRequestConfigJson(Map<String, String> params) throws PluginUserException {
 
     LOG.info("Converting the following param values to JSON: " + FormatUtil.prettyPrint(params, Style.MULTI_LINE));
 
-    /* TODO Convert the typescript code below to Java in order to generate a
-     * service-compatible json request object; required constants should already
-     * be defined above.
+    var requestConfig = buildBaseRequestConfig(params);
 
-    export function paramValuesToBlastConfig(
-      rawParamValues: Record<string, string>
-    ): IoBlastConfig {
-      const paramValues = mapValues(rawParamValues, (paramValue) =>
-        paramValue.replace(/ \(default\)$/, '')
-      );
+    var selectedTool = params.get(BLAST_ALGORITHM_PARAM_NAME);
 
-      const {
-        [BLAST_QUERY_SEQUENCE_PARAM_NAME]: query,
-        [BLAST_ALGORITHM_PARAM_NAME]: selectedTool,
-        [EXPECTATION_VALUE_PARAM_NAME]: eValue,
-        [NUM_QUERY_RESULTS_PARAM_NAME]: numQueryResultsStr,
-        [MAX_MATCHES_QUERY_RANGE_PARAM_NAME]: maxMatchesStr,
-        [WORD_SIZE_PARAM_NAME]: wordSizeStr,
-        [SCORING_MATRIX_PARAM_NAME]: scoringMatrixStr,
-        [COMP_ADJUST_PARAM_NAME]: compBasedStatsStr,
-        [FILTER_LOW_COMPLEX_PARAM_NAME]: filterLowComplexityRegionsStr,
-        [SOFT_MASK_PARAM_NAME]: softMaskStr,
-        [LOWER_CASE_MASK_PARAM_NAME]: lowerCaseMaskStr,
-        [GAP_COSTS_PARAM_NAME]: gapCostsStr,
-        [MATCH_MISMATCH_SCORE]: matchMismatchStr,
-      } = paramValues;
+    var filterLowComplexityRegionsStr = params.get(FILTER_LOW_COMPLEX_PARAM_NAME);
+    var filterLowComplexityRegions = !filterLowComplexityRegionsStr.equals("no filter");
 
-      const [gapOpen, gapExtend] = (gapCostsStr ?? '').split(',').map(Number);
+    if (selectedTool.equals("blastn")) {
+      var dustConfig = buildDustFilterConfig(filterLowComplexityRegions);
 
-      const maxHSPsConfig =
-        Number(maxMatchesStr) >= 1 ? { maxHSPs: Number(maxMatchesStr) } : {};
+      var matchMismatchStr = params.get(MATCH_MISMATCH_SCORE);
+      var rewardPenaltyPair = paramValueToIntPair(matchMismatchStr);
+      var reward = rewardPenaltyPair.getFirst();
+      var penalty = rewardPenaltyPair.getSecond();
 
-      const baseConfig = {
-        query,
-        eValue,
-        maxTargetSeqs: Number(numQueryResultsStr),
-        wordSize: Number(wordSizeStr),
-        softMasking: Boolean(softMaskStr),
-        lcaseMasking: Boolean(lowerCaseMaskStr),
-        gapOpen,
-        gapExtend,
-        outFormat: {
-          format: 'single-file-json',
-        },
-        ...maxHSPsConfig,
-      } as const;
+      return requestConfig
+        .put("tool", selectedTool)
+        .put("task", selectedTool)
+        .put("dust", dustConfig)
+        .put("reward", reward)
+        .put("penalty", penalty);
+    }
 
-      const compBasedStats =
-        compBasedStatsStr === 'Conditional compositional score matrix adjustment'
-          ? 'conditional-comp-based-score-adjustment'
-          : compBasedStatsStr === 'No adjustment'
-          ? 'none'
-          : compBasedStatsStr === 'Composition-based statistics'
-          ? 'comp-based-stats'
-          : 'unconditional-comp-based-score-adjustment';
+    var scoringMatrix = params.get(SCORING_MATRIX_PARAM_NAME);
+    requestConfig.put("matrix", scoringMatrix);
 
-      const filterLowComplexityRegions =
-        filterLowComplexityRegionsStr !== 'no filter';
+    if (filterLowComplexityRegions) {
+      var enabledSegFilterConfig = buildEnabledSegFilterConfig();
+      requestConfig.put("seq", enabledSegFilterConfig);
+    }
 
-      const dustConfig = !filterLowComplexityRegions
-        ? {
-            dust: {
-              enable: false,
-            },
-          }
-        : {
-            dust: {
-              enable: true,
-              level: 20,
-              window: 64,
-              linker: 1,
-            },
-          };
+    if (selectedTool.equals("tblastx")) {
+      return requestConfig
+        .put("tool", selectedTool)
+        .put("queryGeneticCode", 1);
+    }
 
-      const segConfig = !filterLowComplexityRegions
-        ? {}
-        : {
-            seg: { window: 12, locut: 2.2, hicut: 2.5 },
-          };
+    var compBasedStats = params.get(COMP_ADJUST_PARAM_NAME);
+    requestConfig.put("compBasedStats", compBasedStats);
 
-      const [reward, penalty] = (matchMismatchStr ?? '').split(',').map(Number);
+    if (selectedTool.equals("blastp") || selectedTool.equals("tblastn")) {
+      return requestConfig
+        .put("tool", selectedTool)
+        .put("task", selectedTool);
+    }
 
-      if (selectedTool === 'blastn') {
-        return {
-          tool: selectedTool,
-          task: selectedTool,
-          ...baseConfig,
-          ...dustConfig,
-          reward,
-          penalty,
-        };
-      }
+    if (selectedTool.equals("blastx")) {
+      return requestConfig
+        .put("tool", selectedTool)
+        .put("queryGeneticCode", 1);
+    }
 
-      if (selectedTool === 'blastp') {
-        return {
-          tool: selectedTool,
-          task: selectedTool,
-          ...baseConfig,
-          ...segConfig,
-          matrix: scoringMatrixStr as IOBlastPScoringMatrix,
-          compBasedStats,
-        };
-      }
+    throw new PluginUserException("The tool type '" + selectedTool + "' is unsupported");
+  }
 
-      if (selectedTool === 'blastx') {
-        return {
-          tool: selectedTool,
-          queryGeneticCode: 1,
-          task: selectedTool,
-          ...baseConfig,
-          ...segConfig,
-          matrix: scoringMatrixStr as IOBlastXScoringMatrix,
-          compBasedStats,
-        };
-      }
+  /**
+   * Converts the internal values of the WDK multiblaset query params into
+   * a JSON array passed to the multi-blast service which specifies the
+   * databases the job should target
+   *
+   * @param params internal values of params
+   * @return json array to be passed as "targets" to multi-blast service
+   */
+  public static JSONArray buildNewJobRequestTargetJson(Map<String, String> params) {
+    var organismsStr = params.get(BLAST_DATABASE_ORGANISM_PARAM_NAME);
+    var targetType = params.get(BLAST_DATABASE_TYPE_PARAM_NAME);
 
-      if (selectedTool === 'tblastn') {
-        return {
-          tool: selectedTool,
-          task: selectedTool,
-          ...baseConfig,
-          ...segConfig,
-          matrix: scoringMatrixStr as IOTBlastNScoringMatrix,
-          compBasedStats,
-        };
-      }
+    var organisms = organismsStr.split(",");
 
-      if (selectedTool === 'tblastx') {
-        return {
-          tool: selectedTool,
-          queryGeneticCode: 1,
-          ...baseConfig,
-          ...segConfig,
-          matrix: scoringMatrixStr as IOTBlastXScoringMatrix,
-        };
-      }
+    var targets = Arrays.stream(organisms)
+      .filter(organism -> !(organism.equals("-1") || organism.length() <= 3))
+      .map(leafOrganism ->
+        new JSONObject()
+          .put("organism", leafOrganism)
+          .put("target", leafOrganism + targetType)
+      )
+      .toArray();
 
-      throw new Error(`The BLAST tool '${selectedTool}' is not supported`);
-    */
+    return new JSONArray(targets);
+  }
 
-    return new JSONObject();
+  private static JSONObject buildBaseRequestConfig(Map<String, String> params) {
+    var query = params.get(BLAST_QUERY_SEQUENCE_PARAM_NAME);
+    var eValue = params.get(EXPECTATION_VALUE_PARAM_NAME);
+    var numQueryResultsStr = params.get(NUM_QUERY_RESULTS_PARAM_NAME);
+    var maxMatchesStr = params.get(MAX_MATCHES_QUERY_RANGE_PARAM_NAME);
+    var wordSizeStr = params.get(WORD_SIZE_PARAM_NAME);
+    var softMaskStr = params.get(SOFT_MASK_PARAM_NAME);
+    var lowerCaseMaskStr = params.get(LOWER_CASE_MASK_PARAM_NAME);
+    var gapCostsStr = params.get(GAP_COSTS_PARAM_NAME);
+
+    var gapCostsPair = paramValueToIntPair(gapCostsStr);
+    var gapOpen = gapCostsPair.getFirst();
+    var gapExtend = gapCostsPair.getSecond();
+
+    // FIXME Should have the outFormat be "pairwise". This will
+    // require fixes to the multi-blast service. (The multi-blast service
+    // currently doesn't allow "maxTargetSeqs" to be passed when the default
+    // report format is "pairwise".)
+    var outFormat = new JSONObject().put("format", "single-file-json");
+
+    var baseConfig =
+      new JSONObject()
+        .put("query", query)
+        .put("eValue", eValue)
+        .put("maxTargetSeqs", paramValueToInt(numQueryResultsStr))
+        .put("wordSize", paramValueToInt(wordSizeStr))
+        .put("softMasking", paramValueToBoolean(softMaskStr))
+        .put("lcaseMasking", paramValueToBoolean(lowerCaseMaskStr))
+        .put("gapOpen", gapOpen)
+        .put("gapExtend", gapExtend)
+        .put("outFormat", outFormat);
+
+    var maxMatches = paramValueToInt(maxMatchesStr);
+
+    if (maxMatches >= 1) {
+      baseConfig.put("maxHSPs", paramValueToInt(maxMatchesStr));
+    }
+
+    return baseConfig;
+  }
+
+  private static JSONObject buildDustFilterConfig(boolean enable) {
+    var dustFilterConfig = new JSONObject().put("enable", enable);
+
+    if (enable) {
+      dustFilterConfig.put("level", 20);
+      dustFilterConfig.put("window", 64);
+      dustFilterConfig.put("linker", 1);
+    }
+
+    return dustFilterConfig;
+  }
+
+  private static JSONObject buildEnabledSegFilterConfig() {
+    return new JSONObject()
+      .put("window", 12)
+      .put("locut", 2.2)
+      .put("hicut", 2.5);
+  }
+
+  private static boolean paramValueToBoolean(String paramValue) {
+    return paramValue.replace("'", "").equals("true");
+  }
+
+  private static int paramValueToInt(String paramValue) {
+    return Integer.parseInt(paramValue.replace("'", ""));
+  }
+
+  private static TwoTuple<Integer, Integer> paramValueToIntPair(String paramValue) {
+    var pairStrValues = paramValue.replace("'", "").split(",", 2);
+
+    return new TwoTuple<>(
+      Integer.parseInt(pairStrValues[0]),
+      Integer.parseInt(pairStrValues[1])
+    );
   }
 }
