@@ -87,7 +87,7 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
     int firstIndex = sequence.indexOf('>');
     if (firstIndex != -1 && sequence.indexOf('>', firstIndex + 1) != -1) {
       // more than one sequence
-      throw new PluginUserException("Only one sequence can be submitted at a time.");
+      throw new PluginUserException("Only one sequence can be submitted at a time (should have been validated by StringParam regex).");
     }
   }
 
