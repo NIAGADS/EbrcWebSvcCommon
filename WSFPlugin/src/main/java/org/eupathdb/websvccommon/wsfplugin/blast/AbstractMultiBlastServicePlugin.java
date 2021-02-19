@@ -198,7 +198,8 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
 
       // request appears to be successful; read, parse and write result stream data into plugin response
       try (InputStream resultStream = (InputStream)jobReportResponse.getEntity()) {
-        _resultFormatter.formatResult(response, orderedColumns, resultStream, recordClass, dbType, wdkModel);
+        String message = _resultFormatter.formatResult(response, orderedColumns, resultStream, recordClass, dbType, wdkModel);
+        response.setMessage(message);
       }
     }
     catch (IOException e) {
