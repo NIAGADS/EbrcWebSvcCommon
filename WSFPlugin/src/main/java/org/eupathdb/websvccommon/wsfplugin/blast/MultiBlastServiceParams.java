@@ -74,7 +74,7 @@ public class MultiBlastServiceParams {
   }
 
   /**
-   * Converts the internal values of the WDK multiblaset query params into
+   * Converts the internal values of the WDK multiblast query params into
    * a JSON object passed to the multi-blast service to configure a new job for
    * a single input sequence.
    *
@@ -141,7 +141,7 @@ public class MultiBlastServiceParams {
   }
 
   /**
-   * Converts the internal values of the WDK multiblaset query params into
+   * Converts the internal values of the WDK multiblast query params into
    * a JSON array passed to the multi-blast service which specifies the
    * databases the job should target
    *
@@ -150,7 +150,14 @@ public class MultiBlastServiceParams {
    */
   public static JSONArray buildNewJobRequestTargetJson(Map<String, String> params) {
     var organismsStr = params.get(BLAST_DATABASE_ORGANISM_PARAM_NAME);
-    var targetType = params.get(BLAST_DATABASE_TYPE_PARAM_NAME);
+    var wdkTargetType = params.get(BLAST_DATABASE_TYPE_PARAM_NAME);
+
+    // FIXME This is a carryover of some hardcoding from
+    // ApiCommonWebService's EuPathBlastCommandFormatter.
+    // We should explore more permanent solutions.
+    var blastTargetType = wdkTargetType.equals("PopSet")
+      ? "Isolates"
+      : wdkTargetType;
 
     var organisms = organismsStr.split(",");
 
@@ -159,7 +166,7 @@ public class MultiBlastServiceParams {
       .map(leafOrganism ->
         new JSONObject()
           .put("organism", leafOrganism)
-          .put("target", leafOrganism + targetType)
+          .put("target", leafOrganism + blastTargetType)
       )
       .toArray();
 
