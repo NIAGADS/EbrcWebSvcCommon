@@ -87,15 +87,27 @@ public class MultiBlastServiceParams {
 
     var requestConfig = buildBaseRequestConfig(params);
 
-    var selectedTool = params.get(BLAST_ALGORITHM_PARAM_NAME);
+    var selectedTool = getNormalizedParamValue(params, BLAST_ALGORITHM_PARAM_NAME);
 
-    var filterLowComplexityRegionsStr = params.get(FILTER_LOW_COMPLEX_PARAM_NAME);
+    var filterLowComplexityRegionsStr = getNormalizedParamValue(params, FILTER_LOW_COMPLEX_PARAM_NAME);
     var filterLowComplexityRegions = !filterLowComplexityRegionsStr.equals("no filter");
+
+    if (!selectedTool.equals("tblastx")) {
+      var gapCostsStr = getNormalizedParamValue(params, GAP_COSTS_PARAM_NAME);
+
+      var gapCostsPair = paramValueToIntPair(gapCostsStr);
+      var gapOpen = gapCostsPair.getFirst();
+      var gapExtend = gapCostsPair.getSecond();
+
+      requestConfig
+        .put("gapOpen", gapOpen)
+        .put("gapExtend", gapExtend);
+    }
 
     if (selectedTool.equals("blastn")) {
       var dustConfig = buildDustFilterConfig(filterLowComplexityRegions);
 
-      var matchMismatchStr = params.get(MATCH_MISMATCH_SCORE);
+      var matchMismatchStr = getNormalizedParamValue(params, MATCH_MISMATCH_SCORE);
       var rewardPenaltyPair = paramValueToIntPair(matchMismatchStr);
       var reward = rewardPenaltyPair.getFirst();
       var penalty = rewardPenaltyPair.getSecond();
@@ -108,12 +120,12 @@ public class MultiBlastServiceParams {
         .put("penalty", penalty);
     }
 
-    var scoringMatrix = params.get(SCORING_MATRIX_PARAM_NAME);
+    var scoringMatrix = getNormalizedParamValue(params, SCORING_MATRIX_PARAM_NAME);
     requestConfig.put("matrix", scoringMatrix);
 
     if (filterLowComplexityRegions) {
       var enabledSegFilterConfig = buildEnabledSegFilterConfig();
-      requestConfig.put("seq", enabledSegFilterConfig);
+      requestConfig.put("seg", enabledSegFilterConfig);
     }
 
     if (selectedTool.equals("tblastx")) {
@@ -122,7 +134,7 @@ public class MultiBlastServiceParams {
         .put("queryGeneticCode", 1);
     }
 
-    var compBasedStats = params.get(COMP_ADJUST_PARAM_NAME);
+    var compBasedStats = getNormalizedParamValue(params, COMP_ADJUST_PARAM_NAME);
     requestConfig.put("compBasedStats", compBasedStats);
 
     if (selectedTool.equals("blastp") || selectedTool.equals("tblastn")) {
@@ -152,14 +164,14 @@ public class MultiBlastServiceParams {
     var organismsStr = params.get(BLAST_DATABASE_ORGANISM_PARAM_NAME);
     var wdkTargetType = params.get(BLAST_DATABASE_TYPE_PARAM_NAME);
 
+    var organisms = organismsStr.split(",");
+
     // FIXME This is a carryover of some hardcoding from
     // ApiCommonWebService's EuPathBlastCommandFormatter.
     // We should explore more permanent solutions.
     var blastTargetType = wdkTargetType.equals("PopSet")
       ? "Isolates"
       : wdkTargetType;
-
-    var organisms = organismsStr.split(",");
 
     var targets = Arrays.stream(organisms)
       .filter(organism -> !(organism.equals("-1") || organism.length() <= 3))
@@ -174,18 +186,13 @@ public class MultiBlastServiceParams {
   }
 
   private static JSONObject buildBaseRequestConfig(Map<String, String> params) {
-    var query = params.get(BLAST_QUERY_SEQUENCE_PARAM_NAME);
-    var eValue = params.get(EXPECTATION_VALUE_PARAM_NAME);
-    var numQueryResultsStr = params.get(NUM_QUERY_RESULTS_PARAM_NAME);
-    var maxMatchesStr = params.get(MAX_MATCHES_QUERY_RANGE_PARAM_NAME);
-    var wordSizeStr = params.get(WORD_SIZE_PARAM_NAME);
-    var softMaskStr = params.get(SOFT_MASK_PARAM_NAME);
-    var lowerCaseMaskStr = params.get(LOWER_CASE_MASK_PARAM_NAME);
-    var gapCostsStr = params.get(GAP_COSTS_PARAM_NAME);
-
-    var gapCostsPair = paramValueToIntPair(gapCostsStr);
-    var gapOpen = gapCostsPair.getFirst();
-    var gapExtend = gapCostsPair.getSecond();
+    var query = getNormalizedParamValue(params, BLAST_QUERY_SEQUENCE_PARAM_NAME);
+    var eValue = getNormalizedParamValue(params, EXPECTATION_VALUE_PARAM_NAME);
+    var numQueryResultsStr = getNormalizedParamValue(params, NUM_QUERY_RESULTS_PARAM_NAME);
+    var maxMatchesStr = getNormalizedParamValue(params, MAX_MATCHES_QUERY_RANGE_PARAM_NAME);
+    var wordSizeStr = getNormalizedParamValue(params, WORD_SIZE_PARAM_NAME);
+    var softMaskStr = getNormalizedParamValue(params, SOFT_MASK_PARAM_NAME);
+    var lowerCaseMaskStr = getNormalizedParamValue(params, LOWER_CASE_MASK_PARAM_NAME);
 
     // FIXME Should have the outFormat be "pairwise". This will
     // require fixes to the multi-blast service. (The multi-blast service
@@ -201,8 +208,6 @@ public class MultiBlastServiceParams {
         .put("wordSize", paramValueToInt(wordSizeStr))
         .put("softMasking", paramValueToBoolean(softMaskStr))
         .put("lcaseMasking", paramValueToBoolean(lowerCaseMaskStr))
-        .put("gapOpen", gapOpen)
-        .put("gapExtend", gapExtend)
         .put("outFormat", outFormat);
 
     var maxMatches = paramValueToInt(maxMatchesStr);
@@ -233,16 +238,20 @@ public class MultiBlastServiceParams {
       .put("hicut", 2.5);
   }
 
+  private static String getNormalizedParamValue(Map<String, String> params, String paramName) {
+    return params.get(paramName).replaceAll("^'|'$", "");
+  }
+
   private static boolean paramValueToBoolean(String paramValue) {
-    return paramValue.replace("'", "").equals("true");
+    return paramValue.equals("true");
   }
 
   private static int paramValueToInt(String paramValue) {
-    return Integer.parseInt(paramValue.replace("'", ""));
+    return Integer.parseInt(paramValue);
   }
 
   private static TwoTuple<Integer, Integer> paramValueToIntPair(String paramValue) {
-    var pairStrValues = paramValue.replace("'", "").split(",", 2);
+    var pairStrValues = paramValue.split(",", 2);
 
     return new TwoTuple<>(
       Integer.parseInt(pairStrValues[0]),
