@@ -1,25 +1,20 @@
 package org.eupathdb.websvccommon.wsfplugin.solrsearch;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status.Family;
 
 import org.apache.log4j.Logger;
 import org.eupathdb.websvccommon.wsfplugin.PluginUtilities;
-import org.gusdb.fgputil.IoUtil;
+import org.gusdb.fgputil.client.ClientUtil;
+import org.gusdb.fgputil.client.CloseableResponse;
 import org.gusdb.fgputil.json.JsonIterators;
+import org.gusdb.fgputil.web.HttpMethod;
 import org.gusdb.wsf.plugin.PluginModelException;
 import org.gusdb.wsf.plugin.PluginRequest;
 import org.json.JSONArray;
@@ -78,17 +73,14 @@ public class SiteSearchUtil {
   }
 
   public static List<SearchField> getSearchFields(String siteSearchServiceUrl, String documentType, Optional<String> projectId) throws PluginModelException {
-    Response response = null;
-    try {
-      Client client = ClientBuilder.newClient();
-      // only add project ID filter for non-portal sites; for portal get back all fields
-      String projectIdParam = projectId.map(proj -> "?projectId=" + proj).orElse("");
-      String metadataUrl = siteSearchServiceUrl + METADATA_URI + projectIdParam;
-      LOG.info("Querying site search service with: " + metadataUrl);
-      WebTarget webTarget = client.target(metadataUrl);
-      Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
-      response = invocationBuilder.get();
-      String responseBody = IoUtil.readAllChars(new InputStreamReader((InputStream)response.getEntity()));
+    // only add project ID filter for non-portal sites; for portal get back all fields
+    String projectIdParam = projectId.map(proj -> "?projectId=" + proj).orElse("");
+    String metadataUrl = siteSearchServiceUrl + METADATA_URI + projectIdParam;
+    LOG.info("Querying site search service with: " + metadataUrl);
+    try (CloseableResponse response = ClientUtil.makeRequest(metadataUrl,
+        HttpMethod.GET, Optional.empty(), Collections.emptyMap())) {
+
+      String responseBody = ClientUtil.readSmallResponseBody(response);
       if (!response.getStatusInfo().getFamily().equals(Family.SUCCESSFUL)) {
         throw new PluginModelException("Unable to retrieve metadata from site " +
             "search service.  Request returned " + response.getStatus() +
@@ -113,9 +105,6 @@ public class SiteSearchUtil {
     }
     catch (IOException e) {
       throw new PluginModelException("Could not read categories-metadata response", e);
-    }
-    finally {
-      if (response != null) response.close();
     }
   }
 }

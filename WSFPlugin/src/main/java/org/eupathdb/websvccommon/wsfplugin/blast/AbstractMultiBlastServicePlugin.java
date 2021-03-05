@@ -1,30 +1,22 @@
 package org.eupathdb.websvccommon.wsfplugin.blast;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import org.apache.log4j.Logger;
+import org.eupathdb.common.model.MultiBlastServiceUtil;
 import org.eupathdb.common.model.ProjectMapper;
-import org.eupathdb.websvccommon.wsfplugin.CloseableResponse;
 import org.eupathdb.websvccommon.wsfplugin.PluginUtilities;
 import org.gusdb.fgputil.FormatUtil;
-import org.gusdb.fgputil.IoUtil;
+import org.gusdb.fgputil.MapBuilder;
 import org.gusdb.fgputil.Timer;
 import org.gusdb.fgputil.Tuples.TwoTuple;
+import org.gusdb.fgputil.client.ClientUtil;
+import org.gusdb.fgputil.client.CloseableResponse;
 import org.gusdb.fgputil.runtime.ThreadUtil;
 import org.gusdb.fgputil.web.HttpMethod;
-import org.gusdb.fgputil.web.LoginCookieFactory;
 import org.gusdb.wdk.model.Utilities;
 import org.gusdb.wdk.model.WdkModel;
 import org.gusdb.wdk.model.WdkModelException;
@@ -48,14 +40,6 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
 
   // field definitions in the config file
   private static final String FILE_CONFIG = "multiblast-config.xml";
-
-  // required properties in model.prop
-  private static final String LOCALHOST_PROP_KEY = "LOCALHOST";
-  private static final String SERVICE_URL_PROP_KEY = "MULTI_BLAST_SERVICE_URL";
-
-  // header names for blast service authentication
-  private static final String GUEST_USER_ID_HEADER_NAME = "Auth-Guest-User-Id";
-  private static final String REGISTERED_USER_AUTH_HEADER_NAME = "Auth-Key";
 
   private final ResultFormatter _resultFormatter;
 
@@ -111,7 +95,8 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
     TwoTuple<String,String> authHeader = getAuthHeader(wdkModel, request.getContext());
 
     // find base URL for multi-blast service
-    String multiBlastServiceUrl = getMultiBlastServiceUrl(request);
+    String multiBlastServiceUrl = MultiBlastServiceUtil.getMultiBlastServiceUrl(
+        PluginUtilities.getWdkModel(request), e -> new PluginModelException(e));
 
     // retrieve project ID
     String projectId = wdkModel.getProjectId();
@@ -158,17 +143,11 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
     return 0;
   }
 
-  private TwoTuple<String,String> getAuthHeader(WdkModel wdkModel, Map<String, String> requestContext) {
+  private TwoTuple<String, String> getAuthHeader(WdkModel wdkModel, Map<String, String> requestContext) {
     try {
       User user = wdkModel.getUserFactory().getUserById(
           Long.parseLong(requestContext.get(Utilities.QUERY_CTX_USER))).orElseThrow();
-      return user.isGuest()
-          ? new TwoTuple<>(
-              GUEST_USER_ID_HEADER_NAME,
-              String.valueOf(user.getUserId()))
-          : new TwoTuple<>(
-              REGISTERED_USER_AUTH_HEADER_NAME,
-              new LoginCookieFactory(wdkModel.getModelConfig().getSecretKey()).getLoginCookieValue(user.getEmail()));
+      return MultiBlastServiceUtil.getAuthHeader(wdkModel, user);
     }
     catch(WdkModelException e) {
       throw new RuntimeException(e);
@@ -185,12 +164,12 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
     LOG.info("Requesting multi-blast job results at " + jobReportEndpointUrl);
 
     // make job report request
-    try (CloseableResponse jobReportResponse = makeRequest(
-        jobReportEndpointUrl, HttpMethod.GET, Optional.empty(), authHeader)) {
+    try (CloseableResponse jobReportResponse = ClientUtil.makeRequest(
+        jobReportEndpointUrl, HttpMethod.GET, Optional.empty(), new MapBuilder<String,String>(authHeader).toMap())) {
 
       if (jobReportResponse.getStatus() != 200) {
         // error occurred; read entire body for error message
-        String responseBody = readSmallResponseBody(jobReportResponse);
+        String responseBody = ClientUtil.readSmallResponseBody(jobReportResponse);
         throw new PluginModelException("Unexpected response from multi-blast " +
             "service while fetching job report (jobId=" + jobId + "): " +
             jobReportResponse.getStatus() + FormatUtil.NL + responseBody);
@@ -203,7 +182,7 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
       }
     }
     catch (IOException e) {
-      throw new PluginModelException("Unable to read result stream", e);
+      throw new PluginModelException("Unable to read response body from service response.", e);
     }
   }
 
@@ -222,10 +201,10 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
     LOG.info("Requesting multi-blast job status at " + jobIdEndpointUrl);
 
     // make job status request
-    try (CloseableResponse jobStatusResponse = makeRequest(
-        jobIdEndpointUrl, HttpMethod.GET, Optional.empty(), authHeader)) {
+    try (CloseableResponse jobStatusResponse = ClientUtil.makeRequest(
+        jobIdEndpointUrl, HttpMethod.GET, Optional.empty(), new MapBuilder<String,String>(authHeader).toMap())) {
   
-      String responseBody = readSmallResponseBody(jobStatusResponse);
+      String responseBody = ClientUtil.readSmallResponseBody(jobStatusResponse);
       if (jobStatusResponse.getStatus() != 200) {
         throw new PluginModelException("Unexpected response from multi-blast " +
             "service while checking job status (jobId=" + jobId + "): " +
@@ -248,6 +227,9 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
             "Multi-blast service job status endpoint returned unrecognized status value: " + responseObj.getString("status"));
       }
     }
+    catch (IOException e) {
+      throw new PluginModelException("Unable to read response body from service response.", e);
+    }
   }
 
   private static String createJob(JSONObject newJobRequestBody, String multiBlastServiceUrl, TwoTuple<String,String> authHeader) throws PluginModelException {
@@ -255,10 +237,10 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
     LOG.info("Requesting new multi-blast job at " + jobsEndpointUrl + " with JSON body: " + newJobRequestBody.toString(2));
 
     // make new job request
-    try (CloseableResponse newJobResponse = makeRequest(
-        jobsEndpointUrl, HttpMethod.POST, Optional.of(newJobRequestBody), authHeader)) {
+    try (CloseableResponse newJobResponse = ClientUtil.makeRequest(
+        jobsEndpointUrl, HttpMethod.POST, Optional.of(newJobRequestBody), new MapBuilder<String,String>(authHeader).toMap())) {
 
-      String responseBody = readSmallResponseBody(newJobResponse);
+      String responseBody = ClientUtil.readSmallResponseBody(newJobResponse);
       if (newJobResponse.getStatus() != 200) {
         throw new PluginModelException("Unexpected response from multi-blast " +
             "service while requesting new job: " + newJobResponse.getStatus() +
@@ -268,51 +250,8 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
       // return job ID
       return new JSONObject(responseBody).getString("jobId");
     }
-  }
-
-  private static CloseableResponse makeRequest(String url, HttpMethod method, Optional<JSONObject> body, TwoTuple<String,String> authHeader) {
-    Client client = ClientBuilder.newClient();
-    WebTarget webTarget = client.target(url);
-    Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
-    switch(method) {
-      case POST:
-        return new CloseableResponse(invocationBuilder
-            .header(authHeader.getKey(), authHeader.getValue())
-            .post(Entity.entity(body.map(JSONObject::toString)
-            .orElseThrow(() -> new RuntimeException("Body is required for POST")), MediaType.APPLICATION_JSON)));
-      case GET:
-        body.ifPresent(b -> LOG.warn("JSONObject passed to method to generated GET request; it will be ignored."));
-        return new CloseableResponse(invocationBuilder
-            .header(authHeader.getKey(), authHeader.getValue())
-            .get());
-      default:
-        throw new RuntimeException("Only POST and GET methods are currently supported (not " + method + ").");
+    catch (IOException e) {
+      throw new PluginModelException("Unable to read response body from service response.", e);
     }
-  }
-
-  private static String readSmallResponseBody(Response smallResponse) throws PluginModelException {
-    String responseBody = "";
-    if (smallResponse.hasEntity()) {
-      try (InputStream body = (InputStream)smallResponse.getEntity();
-           ByteArrayOutputStream str = new ByteArrayOutputStream()) {
-        IoUtil.transferStream(str, body);
-        responseBody = str.toString();
-      }
-      catch (IOException e) {
-        throw new PluginModelException("Unable to read response body from service response.", e);
-      }
-    }
-    return responseBody;
-  }
-
-  private static String getMultiBlastServiceUrl(PluginRequest request) throws PluginModelException {
-    Map<String,String> modelProps = PluginUtilities.getWdkModel(request).getProperties();
-    String localhost = modelProps.get(LOCALHOST_PROP_KEY);
-    String multiBlastServiceUrl = modelProps.get(SERVICE_URL_PROP_KEY);
-    if (localhost == null || multiBlastServiceUrl == null) {
-      throw new PluginModelException("model.prop must contain the properties: " +
-          LOCALHOST_PROP_KEY + ", " + SERVICE_URL_PROP_KEY);
-    }
-    return localhost + multiBlastServiceUrl;
   }
 }
