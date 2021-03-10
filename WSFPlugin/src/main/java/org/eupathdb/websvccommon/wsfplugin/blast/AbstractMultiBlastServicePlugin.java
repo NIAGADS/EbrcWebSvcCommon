@@ -1,13 +1,18 @@
 package org.eupathdb.websvccommon.wsfplugin.blast;
 
+import static org.gusdb.fgputil.FormatUtil.NL;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.ws.rs.core.Response.Status.Family;
+
 import org.apache.log4j.Logger;
 import org.eupathdb.common.model.MultiBlastServiceUtil;
 import org.eupathdb.common.model.ProjectMapper;
+import org.eupathdb.common.service.PostValidationUserException;
 import org.eupathdb.websvccommon.wsfplugin.PluginUtilities;
 import org.gusdb.fgputil.FormatUtil;
 import org.gusdb.fgputil.MapBuilder;
@@ -40,6 +45,12 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
 
   // field definitions in the config file
   private static final String FILE_CONFIG = "multiblast-config.xml";
+
+  public static class BlastServiceBadRequestException extends PostValidationUserException {
+    public BlastServiceBadRequestException(String message) {
+      super(message);
+    }
+  }
 
   private final ResultFormatter _resultFormatter;
 
@@ -241,14 +252,21 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
         jobsEndpointUrl, HttpMethod.POST, Optional.of(newJobRequestBody), new MapBuilder<String,String>(authHeader).toMap())) {
 
       String responseBody = ClientUtil.readSmallResponseBody(newJobResponse);
-      if (newJobResponse.getStatus() != 200) {
-        throw new PluginModelException("Unexpected response from multi-blast " +
-            "service while requesting new job: " + newJobResponse.getStatus() +
-            FormatUtil.NL + responseBody);
+
+      if (newJobResponse.getStatus() == 200) {
+        // success!  return job ID
+        return new JSONObject(responseBody).getString("jobId");
       }
-  
-      // return job ID
-      return new JSONObject(responseBody).getString("jobId");
+
+      if (Family.CLIENT_ERROR.equals(newJobResponse.getStatusInfo().getFamily())) {
+        // error implying bad parameters
+        throw new BlastServiceBadRequestException(
+            "Multi-Blast service job request returned " + newJobResponse.getStatus() + NL + responseBody);
+      }
+
+      // other error
+      throw new PluginModelException("Unexpected response from multi-blast " +
+          "service while requesting new job: " + newJobResponse.getStatus() + NL + responseBody);
     }
     catch (IOException e) {
       throw new PluginModelException("Unable to read response body from service response.", e);
