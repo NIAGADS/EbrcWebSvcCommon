@@ -115,6 +115,7 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
     // use passed params to POST new job request to blast service
     JSONObject newJobRequestJson = new JSONObject()
       .put("site", projectId)
+      .put("maxSequences", 1)
       .put("config", MultiBlastServiceParams.buildNewJobRequestConfigJson(request.getParams()))
       .put("targets", MultiBlastServiceParams.buildNewJobRequestTargetJson(request.getParams()));
 
