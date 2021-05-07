@@ -118,14 +118,15 @@ public class EuPathSiteSearchPlugin extends AbstractPlugin {
         }
         JSONArray primaryKey = new JSONArray(tokens[0]);
         String score = tokens[1];
-        boolean recordHasProjectId = tokens.length == 3 && !tokens[2].isBlank();
-        String recordProjectId = recordHasProjectId ? tokens[2].trim() : request.getProjectId(); // supplement with local project ID
+        Optional<String> solrRecordProjectId = tokens.length == 3 && !tokens[2].isBlank() ?
+            Optional.of(tokens[2].trim()) : Optional.empty();
+        String recordProjectId = computeRecordProjectId(solrRecordProjectId, primaryKey, request);
 
         // build WSF plugin result row from parsed site search row
         String[] row = readResultRow(recordClass, primaryKey, pkHasProjectId, recordProjectId, score);
 
         if (logRecordProcessing) LOG.log(recordLoggingPriority,
-          "Returning row (project ID appended? " + !recordHasProjectId + "): " + new JSONArray(row).toString());
+          "Returning row (project ID appended? " + solrRecordProjectId.isEmpty() + "): " + new JSONArray(row).toString());
         response.addRow(row);
       }
       return 0;
@@ -139,10 +140,24 @@ public class EuPathSiteSearchPlugin extends AbstractPlugin {
   }
 
   /**
+   * Figure out what projectId to add to the primary key of the row put in the WDK cache
+   *
+   * @param solrRecordProjectId projectId sent by site search service, if any
+   * @param primaryKey primary key of the row sent by site search service
+   * @param request plugin request (context may matter to subclasses)
+   * @return project ID to assign to this row
+   * @throws PluginModelException if unable to calculate project ID
+   */
+  protected String computeRecordProjectId(Optional<String> solrRecordProjectId, JSONArray primaryKey, PluginRequest request) throws PluginModelException {
+    // supplement with local project ID if not sent by site search service
+    return solrRecordProjectId.orElse(request.getProjectId());
+  }
+
+  /**
    * @param recordClass recordClass for this row (may impact how row is constructed)
    * @param primaryKey primary key array
    * @param pkHasProjectId whether this RC's PK has a project_id
-   * @param recordProjectId the record's project ID (include if PK has project_id
+   * @param recordProjectId the record's project ID (include if PK has project_id)
    * @param score score returned by SOLR
    * @return result row array to be returned to WSF
    */
