@@ -105,8 +105,6 @@ public class MultiBlastServiceParams {
     }
 
     if (selectedTool.equals("blastn")) {
-      var dustConfig = buildDustFilterConfig(filterLowComplexityRegions);
-
       var matchMismatchStr = getNormalizedParamValue(params, MATCH_MISMATCH_SCORE);
       var rewardPenaltyPair = paramValueToIntPair(matchMismatchStr);
       var reward = rewardPenaltyPair.getFirst();
@@ -115,7 +113,7 @@ public class MultiBlastServiceParams {
       return requestConfig
         .put("tool", selectedTool)
         .put("task", selectedTool)
-        .put("dust", dustConfig)
+        .put("dust", filterLowComplexityRegions ? "yes" : "no")
         .put("reward", reward)
         .put("penalty", penalty);
     }
@@ -123,10 +121,7 @@ public class MultiBlastServiceParams {
     var scoringMatrix = getNormalizedParamValue(params, SCORING_MATRIX_PARAM_NAME);
     requestConfig.put("matrix", scoringMatrix);
 
-    if (filterLowComplexityRegions) {
-      var enabledSegFilterConfig = buildEnabledSegFilterConfig();
-      requestConfig.put("seg", enabledSegFilterConfig);
-    }
+    requestConfig.put("seg", filterLowComplexityRegions ? "yes" : "no");
 
     if (selectedTool.equals("tblastx")) {
       return requestConfig
@@ -217,25 +212,6 @@ public class MultiBlastServiceParams {
     }
 
     return baseConfig;
-  }
-
-  private static JSONObject buildDustFilterConfig(boolean enable) {
-    var dustFilterConfig = new JSONObject().put("enable", enable);
-
-    if (enable) {
-      dustFilterConfig.put("level", 20);
-      dustFilterConfig.put("window", 64);
-      dustFilterConfig.put("linker", 1);
-    }
-
-    return dustFilterConfig;
-  }
-
-  private static JSONObject buildEnabledSegFilterConfig() {
-    return new JSONObject()
-      .put("window", 12)
-      .put("locut", 2.2)
-      .put("hicut", 2.5);
   }
 
   private static String getNormalizedParamValue(Map<String, String> params, String paramName) {
