@@ -360,7 +360,7 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
     String reportsEndpointUrl = multiBlastServiceUrl + "/reports";
     LOG.info("Requesting new multi-blast report at " + reportsEndpointUrl + " with JSON body: " + newReportRequestBody.toString(2));
 
-    // make new job request
+    // make new report request
     try (CloseableResponse newReportResponse = ClientUtil.makeRequest(
         reportsEndpointUrl, HttpMethod.POST, Optional.of(newReportRequestBody), new MapBuilder<String,String>(authHeader).toMap())) {
 
@@ -383,7 +383,7 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
     String jobsIdEndpointUrl = multiBlastServiceUrl + "/jobs/" + jobId;
     LOG.info("Rerunning expired multi-blast job at " + jobsIdEndpointUrl + " with job id " + jobId);
 
-    // make new job request
+    // make rerun job request
     try (CloseableResponse rerunJobResponse = ClientUtil.makeRequest(
         jobsIdEndpointUrl, HttpMethod.POST, Optional.of(new JSONObject()), new MapBuilder<String,String>(authHeader).toMap())) {
 
@@ -403,7 +403,7 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
     String reportsIdEndpointUrl = multiBlastServiceUrl + "/reports/" + reportId;
     LOG.info("Rerunning expired multi-blast report at " + reportsIdEndpointUrl + " with report id " + reportId);
 
-    // make new job request
+    // make rerun report request
     try (CloseableResponse rerunReportResponse = ClientUtil.makeRequest(
         reportsIdEndpointUrl, HttpMethod.POST, Optional.of(new JSONObject()), new MapBuilder<String,String>(authHeader).toMap())) {
 
