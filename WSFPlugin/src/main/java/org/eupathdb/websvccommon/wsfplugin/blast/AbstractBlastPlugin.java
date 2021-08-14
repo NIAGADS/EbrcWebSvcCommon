@@ -59,8 +59,8 @@ public abstract class AbstractBlastPlugin extends AbstractPlugin {
   }
 
   @Override
-  public void initialize() throws PluginModelException {
-    super.initialize();
+  public void initialize(PluginRequest request) throws PluginModelException {
+    super.initialize(request);
 
     config = new NcbiBlastConfig(properties);
     commandFormatter.setConfig(config);

@@ -60,8 +60,8 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
   }
 
   @Override
-  public void initialize() throws PluginModelException {
-    super.initialize();
+  public void initialize(PluginRequest request) throws PluginModelException {
+    super.initialize(request);
     _resultFormatter.setConfig(new BlastConfig(properties));
   }
 
