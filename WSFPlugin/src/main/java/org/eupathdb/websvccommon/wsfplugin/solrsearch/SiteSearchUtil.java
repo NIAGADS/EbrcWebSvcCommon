@@ -1,5 +1,7 @@
 package org.eupathdb.websvccommon.wsfplugin.solrsearch;
 
+import static org.gusdb.fgputil.FormatUtil.NL;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -18,6 +20,7 @@ import org.gusdb.fgputil.web.HttpMethod;
 import org.gusdb.wsf.plugin.PluginModelException;
 import org.gusdb.wsf.plugin.PluginRequest;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public class SiteSearchUtil {
@@ -77,10 +80,11 @@ public class SiteSearchUtil {
     String projectIdParam = projectId.map(proj -> "?projectId=" + proj).orElse("");
     String metadataUrl = siteSearchServiceUrl + METADATA_URI + projectIdParam;
     LOG.info("Querying site search service with: " + metadataUrl);
+    String responseBody = null;
     try (CloseableResponse response = ClientUtil.makeRequest(metadataUrl,
         HttpMethod.GET, Optional.empty(), Collections.emptyMap())) {
 
-      String responseBody = ClientUtil.readSmallResponseBody(response);
+      responseBody = ClientUtil.readSmallResponseBody(response);
       if (!response.getStatusInfo().getFamily().equals(Family.SUCCESSFUL)) {
         throw new PluginModelException("Unable to retrieve metadata from site " +
             "search service.  Request returned " + response.getStatus() +
@@ -102,6 +106,9 @@ public class SiteSearchUtil {
            json.getString("displayName"),
            json.getString("term")))
         .collect(Collectors.toList());
+    }
+    catch (JSONException e) {
+      throw new PluginModelException("Unable to read metadata JSON: " + NL + responseBody, e);
     }
     catch (IOException e) {
       throw new PluginModelException("Could not read categories-metadata response", e);
