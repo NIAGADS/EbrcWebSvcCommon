@@ -15,6 +15,7 @@ import org.eupathdb.common.model.ProjectMapper;
 import org.eupathdb.common.service.PostValidationUserException;
 import org.eupathdb.websvccommon.wsfplugin.PluginUtilities;
 import org.gusdb.fgputil.FormatUtil;
+import org.gusdb.fgputil.json.JsonUtil;
 import org.gusdb.fgputil.MapBuilder;
 import org.gusdb.fgputil.Timer;
 import org.gusdb.fgputil.Tuples.TwoTuple;
@@ -42,6 +43,12 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
   private static final int INITIAL_WAIT_TIME_MILLIS = 2 /* seconds */ * 1000;
   private static final int POLLING_INTERVAL_MILLIS = 5 /* seconds */ * 1000;
   private static final int MAX_WAIT_TIME_MILLIS = 5 /* minutes */ * 60 * 1000;
+  private static final int MAX_REPORT_SIZE_BYTES = 90 /* megabytes */ * 1000 * 1000;
+
+  private static final String CONTENT_MAX_LENGTH_EXCEEDED_STATUS =
+    "bad-request";
+  private static final String CONTENT_MAX_LENGTH_EXCEEDED_MESSAGE =
+    "Requested report is larger than the specified max content size.";
 
   // field definitions in the config file
   private static final String FILE_CONFIG = "multiblast-config.xml";
@@ -175,6 +182,13 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
 
     LOG.info("Requesting multi-blast job results at " + jobReportEndpointUrl);
 
+    TwoTuple<String,String> contentMaxLengthHeader =
+      new TwoTuple<String, String>("Content-Max-Length", String.valueOf(MAX_REPORT_SIZE_BYTES));
+
+    Map<String,String> headers = new MapBuilder<String,String>(authHeader)
+      .put(contentMaxLengthHeader)
+      .toMap();
+
     // make job report request
     try (CloseableResponse jobReportResponse = ClientUtil.makeRequest(
         jobReportEndpointUrl, HttpMethod.GET, Optional.empty(), new MapBuilder<String,String>(authHeader).toMap())) {
@@ -182,6 +196,20 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
       if (jobReportResponse.getStatus() != 200) {
         // error occurred; read entire body for error message
         String responseBody = ClientUtil.readSmallResponseBody(jobReportResponse);
+
+        JSONObject responseJson = new JSONObject(responseBody);
+
+        if (
+          JsonUtil.getStringOrDefault(responseJson, "status", "").equals(CONTENT_MAX_LENGTH_EXCEEDED_STATUS) &&
+          JsonUtil.getStringOrDefault(responseJson, "message", "").equals(CONTENT_MAX_LENGTH_EXCEEDED_MESSAGE)
+        ) {
+          throw new BlastServiceBadRequestException(
+            "We're sorry, but we cannot handle BLAST results larger than " +
+            MAX_REPORT_SIZE_BYTES/1000000 + "MB.  To reduce the result size, you " +
+            "could decrease V=B or the Expectation value, turn on the Low " +
+            "Complexity filter, or decrease the number of target organisms selected.");
+        }
+
         throw new PluginModelException("Unexpected response from multi-blast " +
             "service while fetching job report (jobId=" + jobId + "): " +
             jobReportResponse.getStatus() + FormatUtil.NL + responseBody);
