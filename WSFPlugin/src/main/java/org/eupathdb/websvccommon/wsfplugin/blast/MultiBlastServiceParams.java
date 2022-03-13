@@ -90,7 +90,9 @@ public class MultiBlastServiceParams {
     var selectedTool = getNormalizedParamValue(params, BLAST_ALGORITHM_PARAM_NAME);
 
     var filterLowComplexityRegionsStr = getNormalizedParamValue(params, FILTER_LOW_COMPLEX_PARAM_NAME);
-    var filterLowComplexityRegions = !filterLowComplexityRegionsStr.equals("no filter");
+    //LOG.debug("\n****filterLowComplexityRegionsStr: ---" + filterLowComplexityRegionsStr + "---");
+    var filterLowComplexityRegions = !filterLowComplexityRegionsStr.startsWith("no");
+    //LOG.debug("\n****filterLowComplexityRegions: ---" + filterLowComplexityRegions + "---");
 
     if (!selectedTool.equals("tblastx")) {
       var gapCostsStr = getNormalizedParamValue(params, GAP_COSTS_PARAM_NAME);
@@ -122,6 +124,7 @@ public class MultiBlastServiceParams {
     requestConfig.put("matrix", scoringMatrix);
 
     requestConfig.put("seg", filterLowComplexityRegions ? "yes" : "no");
+    //LOG.debug("\n****seg: ---" + (filterLowComplexityRegions ? "yes" : "no") + "---");
 
     if (selectedTool.equals("tblastx")) {
       return requestConfig
