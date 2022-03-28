@@ -231,7 +231,7 @@ public abstract class AbstractMultiBlastServicePlugin extends AbstractPlugin {
         ) {
           throw new BlastServiceBadRequestException(
             "We're sorry, but we cannot handle BLAST results larger than " +
-            MAX_REPORT_SIZE_BYTES/1000000 + "MB.  To reduce the result size, you " +
+            MAX_REPORT_SIZE_BYTES/1000000 + "MB. \nIf you see the option to download your result, you may do so. \nTo reduce the result size, you " +
             "could decrease V=B or the Expectation value, turn on the Low " +
             "Complexity filter, or decrease the number of target organisms selected.");
         }
