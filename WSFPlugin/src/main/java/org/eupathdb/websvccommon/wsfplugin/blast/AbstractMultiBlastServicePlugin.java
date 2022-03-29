@@ -7,7 +7,7 @@ import java.io.InputStream;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.ws.rs.core.Response.Status.Family;
+import jakarta.ws.rs.core.Response.Status.Family;
 
 import org.apache.log4j.Logger;
 import org.eupathdb.common.model.MultiBlastServiceUtil;
