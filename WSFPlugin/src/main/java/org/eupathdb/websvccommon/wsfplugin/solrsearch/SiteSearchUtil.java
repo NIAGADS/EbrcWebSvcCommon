@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.core.Response.Status.Family;
+import jakarta.ws.rs.core.Response.Status.Family;
 
 import org.apache.log4j.Logger;
 import org.eupathdb.websvccommon.wsfplugin.PluginUtilities;
