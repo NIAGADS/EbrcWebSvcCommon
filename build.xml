@@ -12,20 +12,12 @@
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
 
   <target name="EbrcWebSvcCommon-Installation" depends="EbrcWebsiteCommon-Installation,
-                                                        EbrcWebSvcCommon-MavenInstallation,
                                                         EbrcWebSvcCommon/WSFPlugin-Installation">
 
     <ant target="defaultProjectInstall">
       <property name="project" value="EbrcWebSvcCommon" />
     </ant>
 
-  </target>
-
-  <target name="EbrcWebSvcCommon-MavenInstallation">
-    <ant target="mavenBuildProject">
-      <property name="project" value="EbrcWebSvcCommon" />
-    </ant>
-    <property name="alreadyBuilt" value="true" />
   </target>
 
 
@@ -45,7 +37,7 @@
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
 
   <target name="EbrcWebSvcCommon-WebInstallation" depends="EbrcWebsiteCommon-WebInstallation,
-                                                             EbrcWebSvcCommon/WSFPlugin-WebInstallation">
+                                                           EbrcWebSvcCommon/WSFPlugin-WebInstallation">
   </target>
 
   <target name="EbrcWebSvcCommon/WSFPlugin-WebInstallation">
@@ -55,30 +47,6 @@
       <property name="component" value="WSFPlugin" />
     </ant>
 
-  </target>
-
-  <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
-  <!-- oooooooooooooooooooooooooooo  Release  ooooooooooooooooooooooooooooo -->
-  <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
-
-  <target name="EbrcWebSvcCommon-Release">
-
-    <ant target="defaultProjectRelease">
-      <property name="cvsroot" value=":ext:cvs.sanger.ac.uk:/cvsroot/GUS" />
-    </ant>
-  </target>
-
-  <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
-  <!-- oooooooooooooooooooooooooo  Distributable  ooooooooooooooooooooooooo -->
-  <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
-
-  <target name="EbrcWebSvcCommon-Distributable">
-
-    <copy todir="${targetDir}">
-      <fileset dir="${projectsDir}">
-        <exclude name="**/CVS/*" />
-      </fileset>
-    </copy>
   </target>
 
 </project>
