@@ -1,4 +1,4 @@
-<project name="EbrcWebSvcCommon" default="Installation" basedir=".">
+<project name="EbrcWebSvcCommon" basedir=".">
 
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooo  Dependencies  oooooooooooooooooooooooooo -->
@@ -6,30 +6,24 @@
 
   <import file="${projectsDir}/EbrcWebsiteCommon/build.xml" />
 
-
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooo  Installation  oooooooooooooooooooooooooo -->
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
 
   <target name="EbrcWebSvcCommon-Installation" depends="EbrcWebsiteCommon-Installation,
                                                         EbrcWebSvcCommon/WSFPlugin-Installation">
-
     <ant target="defaultProjectInstall">
       <property name="project" value="EbrcWebSvcCommon" />
     </ant>
-
   </target>
-
 
   <!-- ooooooooooooooooooooooo  Install Components  ooooooooooooooooooooooo -->
 
   <target name="EbrcWebSvcCommon/WSFPlugin-Installation">
-
     <ant target="defaultComponentInstall">
       <property name="project" value="EbrcWebSvcCommon" />
       <property name="component" value="WSFPlugin" />
     </ant>
-
   </target>
 
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
@@ -37,16 +31,13 @@
   <!-- oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo -->
 
   <target name="EbrcWebSvcCommon-WebInstallation" depends="EbrcWebsiteCommon-WebInstallation,
-                                                           EbrcWebSvcCommon/WSFPlugin-WebInstallation">
-  </target>
+                                                           EbrcWebSvcCommon/WSFPlugin-WebInstallation"/>
 
   <target name="EbrcWebSvcCommon/WSFPlugin-WebInstallation">
-
     <ant target="defaultWebComponentInstall">
       <property name="project" value="EbrcWebSvcCommon" />
       <property name="component" value="WSFPlugin" />
     </ant>
-
   </target>
 
 </project>
